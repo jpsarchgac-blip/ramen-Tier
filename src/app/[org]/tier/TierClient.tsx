@@ -5,6 +5,15 @@ import Link from 'next/link'
 import { TIER_LEVELS, TIER_COLORS, getGoogleMapsUrl } from '@/lib/utils'
 import type { TierLevel, TierRatingWithShop, RamenShop } from '@/types/database'
 import dynamic from 'next/dynamic'
+import HelpTooltip from '@/components/HelpTooltip'
+
+const TIER_HELP: Record<string, string> = {
+  S: '殿堂入り・また絶対行く。コミュニティで最高評価のお店です。迷ったらここへ行けば間違いなし！',
+  A: 'かなり好き・おすすめできる。自信を持って人に勧められる優秀なお店です。',
+  B: '普通においしい。外れではないが特筆するほどでもない、安定した評価のお店です。',
+  C: 'まあまあ・好みが分かれる。人によって評価が割れるお店。好みに合えば刺さります。',
+  D: '自分には合わなかった。味の好みが合わなかったお店。他のメンバーには合うかもしれません。',
+}
 
 const TierDetailModal = dynamic(() => import('@/components/TierDetailModal'), { ssr: false })
 const ShopAddModal = dynamic(() => import('@/components/ShopAddModal'), { ssr: false })
@@ -60,7 +69,13 @@ export default function TierClient({ org, initialRatings, memberId }: TierClient
   return (
     <>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="font-bold text-[#1C1A16] text-xl">自分のTierリスト</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="font-bold text-[#1C1A16] text-xl">自分のTierリスト</h1>
+          <HelpTooltip
+            text="S〜Dの5段階でラーメン屋を格付けするリストです。カードをドラッグ&ドロップでTier間を移動できます。カードをクリックすると詳細な評価を確認できます。"
+            position="bottom"
+          />
+        </div>
         <button
           onClick={() => setShowAddModal(true)}
           className="bg-[#F2D400] text-[#1C1A16] font-ui font-semibold text-sm px-4 py-2 hover:bg-[#B8A000] transition-colors flex items-center gap-1"
@@ -91,6 +106,10 @@ export default function TierClient({ org, initialRatings, memberId }: TierClient
             >
               <span className="font-ui font-bold text-xl" style={{ color: TIER_COLORS[tier] }}>{tier}</span>
               <span className="text-xs text-[#9C9688]">{grouped[tier].length}店</span>
+              <HelpTooltip
+                text={TIER_HELP[tier]}
+                position="right"
+              />
             </div>
 
             {/* Shop cards */}

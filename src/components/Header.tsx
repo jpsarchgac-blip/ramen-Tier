@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import HelpTooltip from '@/components/HelpTooltip'
 import type { Member } from '@/types/database'
 
 interface HeaderProps {
@@ -12,10 +13,30 @@ interface HeaderProps {
 }
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', icon: 'home', path: 'dashboard' },
-  { label: 'Tier', icon: 'star', path: 'tier' },
-  { label: 'Search', icon: 'search', path: 'search' },
-  { label: 'Feed', icon: 'photo_camera', path: 'feed' },
+  {
+    label: 'Dashboard',
+    icon: 'home',
+    path: 'dashboard',
+    help: 'コミュニティ全体のTier人気ランキングや評価分布グラフ、メンバー一覧を確認できるトップページです。',
+  },
+  {
+    label: 'Tier',
+    icon: 'star',
+    path: 'tier',
+    help: '自分のラーメン屋格付けリストです。S〜Dの5段階でお店を評価し、ドラッグ&ドロップで並び替えられます。',
+  },
+  {
+    label: 'Search',
+    icon: 'search',
+    path: 'search',
+    help: 'AIがコミュニティの評価データをもとに、食べたいラーメンのイメージから最適な店舗を提案してくれます。',
+  },
+  {
+    label: 'Feed',
+    icon: 'photo_camera',
+    path: 'feed',
+    help: 'メンバーが投稿したラーメン写真を閲覧・いいね・コメントできる、コミュニティ専用のインスタグラムです。',
+  },
 ]
 
 export default function Header({ org, member }: HeaderProps) {
@@ -47,18 +68,22 @@ export default function Header({ org, member }: HeaderProps) {
         {/* Nav */}
         <nav className="flex items-center gap-1 flex-1">
           {NAV_ITEMS.map(item => (
-            <Link
-              key={item.path}
-              href={`/${org}/${item.path}`}
-              className={`flex items-center gap-1 px-3 py-1.5 text-sm font-ui font-medium transition-colors ${
-                isActive(item.path)
-                  ? 'bg-[#F2D400] text-[#1C1A16]'
-                  : 'text-[#9C9688] hover:text-[#1C1A16] hover:bg-[#FEFAE0]'
-              }`}
-            >
-              <span className="material-symbols-rounded text-[18px]">{item.icon}</span>
-              <span className="hidden sm:inline">{item.label}</span>
-            </Link>
+            <div key={item.path} className="flex items-center gap-1">
+              <Link
+                href={`/${org}/${item.path}`}
+                className={`flex items-center gap-1 px-3 py-1.5 text-sm font-ui font-medium transition-colors ${
+                  isActive(item.path)
+                    ? 'bg-[#F2D400] text-[#1C1A16]'
+                    : 'text-[#9C9688] hover:text-[#1C1A16] hover:bg-[#FEFAE0]'
+                }`}
+              >
+                <span className="material-symbols-rounded text-[18px]">{item.icon}</span>
+                <span className="hidden sm:inline">{item.label}</span>
+              </Link>
+              <span className="hidden sm:inline">
+                <HelpTooltip text={item.help} position="bottom" />
+              </span>
+            </div>
           ))}
         </nav>
 
