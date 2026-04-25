@@ -9,6 +9,7 @@ import { setupUser } from '@/lib/actions/setup'
 export default function SetupPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [setupError, setSetupError] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [bio, setBio] = useState('')
   const [favoriteTypes, setFavoriteTypes] = useState<string[]>([])
@@ -68,11 +69,16 @@ export default function SetupPage() {
     e.preventDefault()
     if (!displayName.trim()) return
     setLoading(true)
+    setSetupError('')
     try {
       const result = await setupUser({ displayName, bio, favoriteTypes, avatarUrl })
       if (result.orgSlug) {
         router.push(`/${result.orgSlug}/dashboard`)
+      } else {
+        setSetupError(result.error ?? '不明なエラーが発生しました')
       }
+    } catch (e: any) {
+      setSetupError(e?.message ?? '不明なエラーが発生しました')
     } finally {
       setLoading(false)
     }
@@ -86,6 +92,12 @@ export default function SetupPage() {
           <h1 className="font-display text-[#1C1A16] text-xl font-bold mb-1">ラーメンTier へようこそ！</h1>
           <p className="text-[#9C9688] text-sm">まず、プロフィールを設定してください</p>
         </div>
+
+        {setupError && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm">
+            エラー: {setupError}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Avatar */}
