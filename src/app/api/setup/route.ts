@@ -8,14 +8,16 @@ export async function POST(request: Request) {
 
   const { displayName, bio, favoriteTypes, avatarUrl } = await request.json()
 
-  // Find the organization matching user's email domain
+  // Find org matching user's email domain, or wildcard org (allowed_domain = '*')
   const domain = user.email?.split('@')[1]
   if (!domain) return NextResponse.json({ error: 'No email domain' }, { status: 400 })
 
   const { data: org } = await supabase
     .from('organizations')
     .select('id, slug')
-    .eq('allowed_domain', domain)
+    .or(`allowed_domain.eq.${domain},allowed_domain.eq.*`)
+    .order('created_at', { ascending: true })
+    .limit(1)
     .single()
 
   if (!org) return NextResponse.json({ error: 'No organization for this domain' }, { status: 404 })
