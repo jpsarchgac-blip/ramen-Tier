@@ -23,9 +23,17 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { pathname, searchParams } = request.nextUrl
 
-  const { pathname } = request.nextUrl
+  // Supabase sometimes sends the OAuth code to Site URL (/) instead of /auth/callback.
+  // Intercept it early and redirect before getUser() so the session exchange works.
+  if (pathname === '/' && searchParams.has('code')) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/auth/callback'
+    return NextResponse.redirect(url)
+  }
+
+  const { data: { user } } = await supabase.auth.getUser()
   const publicPaths = ['/', '/login', '/auth/callback']
   const isPublic = publicPaths.some(p => pathname === p || pathname.startsWith('/auth/'))
 
