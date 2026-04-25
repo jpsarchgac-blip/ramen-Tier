@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { TIER_LEVELS, TIER_COLORS, getGoogleMapsUrl, formatDate } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
 import ShopDetailClient from './ShopDetailClient'
+import ShopDetailInteractive from './ShopDetailInteractive'
 import HelpTooltip from '@/components/HelpTooltip'
 
 export default async function ShopDetailPage({
@@ -37,14 +38,12 @@ export default async function ShopDetailPage({
     .single()
   if (!shop) notFound()
 
-  // Member ratings
   const { data: ratings } = await supabase
     .from('tier_ratings')
     .select('*, members(id, display_name, avatar_url)')
     .eq('shop_id', shopId)
     .eq('organization_id', organization.id)
 
-  // Tier distribution
   const tierDist: Record<TierLevel, number> = { S: 0, A: 0, B: 0, C: 0, D: 0 }
   const avgScores = { noodle: 0, soup: 0, toppings: 0, wait: 0, speed: 0, location: 0 }
   const scoreCounts = { noodle: 0, soup: 0, toppings: 0, wait: 0, speed: 0, location: 0 }
@@ -68,7 +67,6 @@ export default async function ShopDetailPage({
     location: scoreCounts.location ? +(avgScores.location / scoreCounts.location).toFixed(1) : null,
   }
 
-  // Wish list
   const { count: wishCount } = await supabase
     .from('wish_list')
     .select('*', { count: 'exact', head: true })
@@ -82,7 +80,6 @@ export default async function ShopDetailPage({
     .eq('member_id', myMember!.id)
     .single()
 
-  // Related posts
   const { data: posts } = await supabase
     .from('posts')
     .select('id, image_urls, caption, created_at, members(display_name, avatar_url)')
@@ -94,6 +91,23 @@ export default async function ShopDetailPage({
   const mapsUrl = getGoogleMapsUrl(shop.google_place_id, shop.name, shop.address)
   const totalRatings = Object.values(tierDist).reduce((a, b) => a + b, 0)
   const maxTierCount = Math.max(...Object.values(tierDist), 1)
+
+  const memberRatings = (ratings ?? []).map((r: any) => {
+    const member = r.members as unknown as { id: string; display_name: string | null; avatar_url: string | null } | null
+    return {
+      id: r.id,
+      tier: r.tier,
+      score_noodle: r.score_noodle,
+      score_soup: r.score_soup,
+      score_toppings: r.score_toppings,
+      score_wait: r.score_wait,
+      score_speed: r.score_speed,
+      score_location: r.score_location,
+      highlights: r.highlights,
+      comment: r.comment,
+      member,
+    }
+  })
 
   return (
     <div className="space-y-6">
@@ -172,45 +186,13 @@ export default async function ShopDetailPage({
         />
       </div>
 
-      {/* Community avg radar chart */}
-      <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-4">
-        <h2 className="font-bold text-[#1C1A16] mb-3 flex items-center gap-2">
-          コミュニティ平均チャート
-          <HelpTooltip text="コミュニティ全メンバーの麺・汁・具材・並ぶ時間・提供速度・立地スコアの平均値をチャートで可視化したものです。評価した人が多いほど信頼度が上がります。" position="bottom" />
-        </h2>
-        <CommunityRadarChart avgChart={avgChart} />
-      </div>
-
-      {/* Member ratings */}
-      <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-4">
-        <h2 className="font-bold text-[#1C1A16] mb-3">メンバーの評価</h2>
-        <div className="flex flex-wrap gap-2">
-          {(ratings ?? []).map((r: any) => {
-            const member = r.members as unknown as { id: string; display_name: string | null; avatar_url: string | null } | null
-            if (!member) return null
-            return (
-              <Link
-                key={r.id}
-                href={`/${org}/profile/${member.id}`}
-                className="flex items-center gap-2 border border-[#E4E0D8] px-3 py-2 hover:border-[#F2D400] transition-colors"
-                style={{ borderLeftWidth: 3, borderLeftColor: r.tier ? TIER_COLORS[r.tier as TierLevel] : '#E4E0D8', borderLeftStyle: 'solid' }}
-              >
-                {member.avatar_url ? (
-                  <img src={member.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover" />
-                ) : (
-                  <div className="w-6 h-6 rounded-full bg-[#FEFAE0] flex items-center justify-center">
-                    <span className="material-symbols-rounded text-[12px] text-[#B8A000]">person</span>
-                  </div>
-                )}
-                <span className="text-xs text-[#1C1A16]">{member.display_name}</span>
-                {r.tier && (
-                  <span className="font-ui font-bold text-xs" style={{ color: TIER_COLORS[r.tier as TierLevel] }}>{r.tier}</span>
-                )}
-              </Link>
-            )
-          })}
-        </div>
-      </div>
+      {/* Interactive: radar chart tabs + member ratings with modal */}
+      <ShopDetailInteractive
+        org={org}
+        avgChart={avgChart}
+        memberRatings={memberRatings}
+        shop={shop}
+      />
 
       {/* Related posts */}
       {(posts?.length ?? 0) > 0 && (
@@ -235,42 +217,6 @@ export default async function ShopDetailPage({
           </div>
         </div>
       )}
-    </div>
-  )
-}
-
-function CommunityRadarChart({ avgChart }: { avgChart: Record<string, number | null> }) {
-  const ramenData = [
-    { subject: '麺', value: avgChart.noodle },
-    { subject: '汁', value: avgChart.soup },
-    { subject: '具材', value: avgChart.toppings },
-  ]
-  const storeData = [
-    { subject: '並ぶ時間', value: avgChart.wait },
-    { subject: '提供速度', value: avgChart.speed },
-    { subject: '立地', value: avgChart.location },
-  ]
-  const hasAny = [...ramenData, ...storeData].some(d => d.value !== null)
-  if (!hasAny) return <p className="text-sm text-[#9C9688]">評価データがまだありません</p>
-
-  return (
-    <div className="space-y-2">
-      {[{ label: 'ラーメン', data: ramenData }, { label: '店舗', data: storeData }].map(({ label, data }) => {
-        const hasData = data.some(d => d.value !== null)
-        if (!hasData) return null
-        return (
-          <div key={label}>
-            <p className="text-xs font-semibold text-[#9C9688] mb-1">{label}チャート</p>
-            <div className="flex flex-wrap gap-x-4 gap-y-1">
-              {data.filter(d => d.value !== null).map(d => (
-                <span key={d.subject} className="text-sm text-[#9C9688]">
-                  {d.subject}: <strong className="text-[#1C1A16] font-ui">{d.value?.toFixed(1)}</strong>
-                </span>
-              ))}
-            </div>
-          </div>
-        )
-      })}
     </div>
   )
 }

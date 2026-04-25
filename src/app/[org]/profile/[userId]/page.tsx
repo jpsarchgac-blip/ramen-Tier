@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { TIER_LEVELS, TIER_COLORS, getGoogleMapsUrl, formatDate } from '@/lib/utils'
+import { TIER_LEVELS, formatDate } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
-import TierDetailModalTrigger from './TierDetailModalTrigger'
 import HelpTooltip from '@/components/HelpTooltip'
+import ProfileTabs from './ProfileTabs'
 
 export default async function ProfilePage({
   params,
@@ -40,7 +40,6 @@ export default async function ProfilePage({
 
   const isOwn = myMember?.id === member.id
 
-  // Stats
   const [{ count: shopCount }, { count: wishCount }, { count: postCount }] = await Promise.all([
     supabase.from('tier_ratings').select('*', { count: 'exact', head: true }).eq('member_id', member.id),
     supabase.from('wish_list').select('*', { count: 'exact', head: true }).eq('member_id', member.id),
@@ -58,13 +57,23 @@ export default async function ProfilePage({
     ratings = data ?? []
   }
 
-  // Recent posts
-  const { data: recentPosts } = await supabase
+  // Wishlist (always fetch for own; for others only if needed for display)
+  let wishItems: any[] = []
+  if (isOwn || true) {
+    const { data } = await supabase
+      .from('wish_list')
+      .select('id, shop_id, ramen_shops(*)')
+      .eq('member_id', member.id)
+      .order('created_at', { ascending: false })
+    wishItems = data ?? []
+  }
+
+  // All posts
+  const { data: allPosts } = await supabase
     .from('posts')
-    .select('id, image_urls, created_at')
+    .select('id, image_urls, caption, created_at')
     .eq('member_id', member.id)
     .order('created_at', { ascending: false })
-    .limit(3)
 
   // Favorite shop
   let favoriteShop: { id: string; name: string } | null = null
@@ -160,78 +169,20 @@ export default async function ProfilePage({
         </div>
       </div>
 
-      {/* Tier list */}
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold text-[#1C1A16] flex items-center gap-2">
-            Tierリスト
-            {!member.tier_public && !isOwn && (
-              <span className="ml-2 text-xs font-normal text-[#9C9688]">（非公開）</span>
-            )}
-            <HelpTooltip text="S〜Dの5段階でラーメン屋を格付けしたリストです。プロフィール編集から公開・非公開を切り替えられます。" position="bottom" />
-          </h2>
-        </div>
-
-        {(!member.tier_public && !isOwn) ? (
-          <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-6 text-center text-[#9C9688] text-sm">
-            このメンバーのTierリストは非公開です
-          </div>
-        ) : ratings.length === 0 ? (
-          <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-6 text-center text-[#9C9688] text-sm">
-            まだTierに登録された店舗がありません
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {TIER_LEVELS.map(tier => {
-              if (grouped[tier].length === 0) return null
-              return (
-                <div key={tier} className="bg-[#FFFFFF] border border-[#E4E0D8]">
-                  <div
-                    className="px-4 py-2 text-sm font-ui font-bold border-b border-[#E4E0D8]"
-                    style={{ borderLeftWidth: 4, borderLeftColor: TIER_COLORS[tier], borderLeftStyle: 'solid', color: TIER_COLORS[tier] }}
-                  >
-                    Tier {tier}
-                  </div>
-                  <div className="flex flex-wrap gap-2 p-3">
-                    {grouped[tier].map((rating: any) => {
-                      const shop = rating.ramen_shops
-                      return (
-                        <TierDetailModalTrigger
-                          key={rating.id}
-                          rating={rating}
-                          shop={shop}
-                          member={member}
-                          org={org}
-                        />
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Recent posts */}
-      {(recentPosts?.length ?? 0) > 0 && (
-        <div>
-          <h2 className="font-bold text-[#1C1A16] mb-3">直近の投稿</h2>
-          <div className="grid grid-cols-3 gap-2">
-            {recentPosts?.map(post => (
-              <Link key={post.id} href={`/${org}/feed/${post.id}`} className="block aspect-square bg-[#F7F5F0] border border-[#E4E0D8] overflow-hidden group">
-                {post.image_urls?.[0] ? (
-                  <img src={post.image_urls[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-2xl">🍜</span>
-                  </div>
-                )}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Tabs: Tier / Wish / Posts */}
+      <ProfileTabs
+        org={org}
+        member={member}
+        isOwn={isOwn}
+        ratings={ratings}
+        wishItems={wishItems.map((w: any) => ({
+          id: w.id,
+          shop_id: w.shop_id,
+          ramen_shops: w.ramen_shops,
+        }))}
+        posts={allPosts ?? []}
+        grouped={grouped}
+      />
     </div>
   )
 }

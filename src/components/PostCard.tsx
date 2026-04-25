@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { formatDate, TIER_COLORS } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
@@ -26,6 +26,7 @@ export default function PostCard({ post, org, myMemberId }: PostCardProps) {
   const [liked, setLiked] = useState(post.post_likes.some(l => l.member_id === myMemberId))
   const [likeCount, setLikeCount] = useState(post.post_likes.length)
   const [imgIndex, setImgIndex] = useState(0)
+  const [bouncing, setBouncing] = useState(false)
   const images = post.image_urls ?? []
   const member = post.members
 
@@ -33,6 +34,10 @@ export default function PostCard({ post, org, myMemberId }: PostCardProps) {
     const next = !liked
     setLiked(next)
     setLikeCount(c => c + (next ? 1 : -1))
+    if (next) {
+      setBouncing(true)
+      setTimeout(() => setBouncing(false), 400)
+    }
     await fetch(`/api/orgs/${org}/posts/${post.id}/like`, {
       method: next ? 'POST' : 'DELETE',
     })
@@ -72,7 +77,7 @@ export default function PostCard({ post, org, myMemberId }: PostCardProps) {
           <img
             src={images[imgIndex]}
             alt=""
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform duration-300"
           />
           {images.length > 1 && (
             <>
@@ -90,7 +95,7 @@ export default function PostCard({ post, org, myMemberId }: PostCardProps) {
               </button>
               <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
                 {images.map((_, i) => (
-                  <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === imgIndex ? 'bg-white' : 'bg-white/50'}`} />
+                  <div key={i} className={`w-1.5 h-1.5 rounded-full transition-colors ${i === imgIndex ? 'bg-white' : 'bg-white/50'}`} />
                 ))}
               </div>
             </>
@@ -104,7 +109,12 @@ export default function PostCard({ post, org, myMemberId }: PostCardProps) {
           onClick={toggleLike}
           className={`flex items-center gap-1 text-sm transition-colors ${liked ? 'text-[#E8593C]' : 'text-[#9C9688] hover:text-[#E8593C]'}`}
         >
-          <span className="material-symbols-rounded text-[20px]" style={{ fontVariationSettings: liked ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
+          <span
+            className={`material-symbols-rounded text-[20px] ${bouncing ? 'animate-like-bounce' : ''}`}
+            style={{ fontVariationSettings: liked ? "'FILL' 1" : "'FILL' 0" }}
+          >
+            favorite
+          </span>
           <span className="font-ui font-medium">{likeCount}</span>
         </button>
         <Link
