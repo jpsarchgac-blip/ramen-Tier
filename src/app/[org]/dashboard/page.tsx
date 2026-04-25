@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { TIER_COLORS, TIER_LEVELS, getGoogleMapsUrl } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
+import HelpTooltip from '@/components/HelpTooltip'
 
 export default async function DashboardPage({ params }: { params: Promise<{ org: string }> }) {
   const { org } = await params
@@ -63,6 +64,7 @@ export default async function DashboardPage({ params }: { params: Promise<{ org:
         <h2 className="font-bold text-[#1C1A16] text-lg mb-3 flex items-center gap-2">
           <span className="material-symbols-rounded text-[#F2D400]">star</span>
           コミュニティの人気ラーメン屋 TOP5
+          <HelpTooltip text="コミュニティ全メンバーのTier評価をもとに、S評価が多い順でランキングされたお店のTOP5です。" position="bottom" />
         </h2>
         <div className="flex gap-3 overflow-x-auto pb-2">
           {topShops.length === 0 && (
@@ -98,7 +100,10 @@ export default async function DashboardPage({ params }: { params: Promise<{ org:
       {/* Tier distribution chart */}
       {topShops.length > 0 && (
         <section>
-          <h2 className="font-bold text-[#1C1A16] text-lg mb-3">評価分布</h2>
+          <h2 className="font-bold text-[#1C1A16] text-lg mb-3 flex items-center gap-2">
+            評価分布
+            <HelpTooltip text="人気TOP3のお店について、S〜Dの各Tier評価に何人がつけたかを棒グラフで表示します。コミュニティの評価傾向が一目でわかります。" position="bottom" />
+          </h2>
           <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-4">
             {topShops.slice(0, 3).map(([shopId, shop]) => (
               <div key={shopId} className="mb-4 last:mb-0">
@@ -129,8 +134,9 @@ export default async function DashboardPage({ params }: { params: Promise<{ org:
 
       {/* Members */}
       <section>
-        <h2 className="font-bold text-[#1C1A16] text-lg mb-3">
+        <h2 className="font-bold text-[#1C1A16] text-lg mb-3 flex items-center gap-2">
           コミュニティメンバー ({members?.length ?? 0}人)
+          <HelpTooltip text="このコミュニティに参加しているメンバーの一覧です。アイコンをクリックするとプロフィールとTierリストを確認できます。" position="bottom" />
         </h2>
         <div className="flex flex-wrap gap-3">
           {members?.map(member => (

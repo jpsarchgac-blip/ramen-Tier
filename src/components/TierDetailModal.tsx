@@ -5,6 +5,7 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 import { TIER_COLORS, TIER_BG_CLASSES, TIER_TEXT_CLASSES, getGoogleMapsUrl } from '@/lib/utils'
 import type { TierRating, RamenShop, Member, TierLevel } from '@/types/database'
+import HelpTooltip from '@/components/HelpTooltip'
 
 const RadarChart = dynamic(() => import('./RadarChart'), { ssr: false })
 
@@ -62,7 +63,7 @@ export default function TierDetailModal({ rating, shop, member, org, isOwn, onCl
         {/* Radar chart */}
         {(hasRamenData || hasStoreData) && (
           <div className="p-4 border-b border-[#E4E0D8]">
-            <div className="flex gap-2 mb-3">
+            <div className="flex items-center gap-2 mb-3">
               {hasRamenData && (
                 <button
                   onClick={() => setChartTab('ramen')}
@@ -87,6 +88,7 @@ export default function TierDetailModal({ rating, shop, member, org, isOwn, onCl
                   店チャート
                 </button>
               )}
+              <HelpTooltip text="ラーメンチャートは麺・汁・具材、店チャートは並ぶ時間・提供速度・立地を0〜10点で評価したレーダーチャートです。" position="right" />
             </div>
             <div className="h-48">
               <RadarChart
@@ -111,7 +113,10 @@ export default function TierDetailModal({ rating, shop, member, org, isOwn, onCl
         <div className="p-4 space-y-3">
           {(rating.highlights?.length ?? 0) > 0 && (
             <div>
-              <p className="text-xs text-[#9C9688] mb-1.5">一押しポイント</p>
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <p className="text-xs text-[#9C9688]">一押しポイント</p>
+                <HelpTooltip text="評価者がこのお店で特に良かったと感じたポイントです。複数のメンバーが同じポイントを選んでいるほど信頼度が高まります。" position="right" />
+              </div>
               <div className="flex flex-wrap gap-1.5">
                 {rating.highlights?.map(h => (
                   <span key={h} className="bg-[#FEFAE0] border border-[#F2D400] text-[#1C1A16] text-xs px-2 py-0.5">

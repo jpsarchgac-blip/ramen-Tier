@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { RAMEN_TYPES } from '@/lib/utils'
 import type { Member, RamenShop } from '@/types/database'
+import HelpTooltip from '@/components/HelpTooltip'
 
 export default function ProfileEditPage() {
   const router = useRouter()
@@ -198,7 +199,10 @@ export default function ProfileEditPage() {
           {/* Tier public */}
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-[#1C1A16]">Tierリストを公開する</p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-sm font-medium text-[#1C1A16]">Tierリストを公開する</p>
+                <HelpTooltip text="ONにするとコミュニティの他のメンバーがあなたのTierリストを閲覧できます。OFFにすると自分だけが見られます。" position="right" />
+              </div>
               <p className="text-xs text-[#9C9688]">OFFにすると他のメンバーに非表示</p>
             </div>
             <button

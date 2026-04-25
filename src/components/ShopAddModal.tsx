@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { TIER_LEVELS, TIER_COLORS, HIGHLIGHT_OPTIONS, RAMEN_TYPES } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
+import HelpTooltip from '@/components/HelpTooltip'
 
 interface PlaceInfo {
   placeId: string | null
@@ -252,14 +253,20 @@ export default function ShopAddModal({ org, onClose, onSaved }: ShopAddModalProp
             <div className="space-y-4">
               <p className="text-sm text-[#9C9688]">チェックを入れたスコアのみ評価に含まれます（任意）</p>
               <div className="space-y-3">
-                <p className="text-xs font-semibold text-[#9C9688] uppercase tracking-wide">ラーメンチャート</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-semibold text-[#9C9688] uppercase tracking-wide">ラーメンチャート</p>
+                  <HelpTooltip text="麺・汁・具材の3軸でラーメン自体の品質を評価します。チェックを入れた項目だけが評価に含まれ、他のメンバーとの比較チャートに反映されます。" position="right" />
+                </div>
                 <ScoreSlider label="麺" scoreKey="noodle" />
                 <ScoreSlider label="汁" scoreKey="soup" />
                 <ScoreSlider label="具材" scoreKey="toppings" />
               </div>
               <hr className="border-[#E4E0D8]" />
               <div className="space-y-3">
-                <p className="text-xs font-semibold text-[#9C9688] uppercase tracking-wide">店チャート</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-semibold text-[#9C9688] uppercase tracking-wide">店チャート</p>
+                  <HelpTooltip text="並ぶ時間・提供速度・立地の3軸でお店の使い勝手を評価します。行列が少なく提供が早いほど高スコアになります。" position="right" />
+                </div>
                 <ScoreSlider label="並ぶ時間" scoreKey="wait" />
                 <ScoreSlider label="提供速度" scoreKey="speed" />
                 <ScoreSlider label="立地" scoreKey="location" />
@@ -275,7 +282,10 @@ export default function ShopAddModal({ org, onClose, onSaved }: ShopAddModalProp
           {step === 4 && (
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-medium text-[#1C1A16] mb-2">一押しポイント（複数可）</p>
+                <div className="flex items-center gap-1.5 mb-2">
+                  <p className="text-sm font-medium text-[#1C1A16]">一押しポイント（複数可）</p>
+                  <HelpTooltip text="このお店の特に良かった点を選んでください。複数選択可能で、店舗詳細ページで他のメンバーの評価と合わせて表示されます。" position="right" />
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {HIGHLIGHT_OPTIONS.map(h => (
                     <button

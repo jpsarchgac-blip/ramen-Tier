@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import PostCard from '@/components/PostCard'
+import HelpTooltip from '@/components/HelpTooltip'
 
 const PostCreateModal = dynamic(() => import('@/components/PostCreateModal'), { ssr: false })
 const BgmPlayer = dynamic(() => import('@/components/BgmPlayer'), { ssr: false })
@@ -28,7 +29,10 @@ export default function FeedClient({ org, initialPosts, myMemberId, bgmUrl, bgmV
     <div className="max-w-lg mx-auto space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="font-bold text-[#1C1A16] text-xl">ラーメンインスタ</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="font-bold text-[#1C1A16] text-xl">ラーメンインスタ</h1>
+          <HelpTooltip text="コミュニティメンバーが投稿したラーメン写真を見られるフィードです。いいねやコメントで盛り上がりましょう。BGMを設定するとお店の雰囲気を演出できます。" position="bottom" />
+        </div>
         <button
           onClick={() => setShowCreate(true)}
           className="bg-[#F2D400] text-[#1C1A16] font-ui font-semibold text-sm px-4 py-2 hover:bg-[#B8A000] flex items-center gap-1"

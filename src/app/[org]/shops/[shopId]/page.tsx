@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { TIER_LEVELS, TIER_COLORS, getGoogleMapsUrl, formatDate } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
 import ShopDetailClient from './ShopDetailClient'
+import HelpTooltip from '@/components/HelpTooltip'
 
 export default async function ShopDetailPage({
   params,
@@ -138,7 +139,10 @@ export default async function ShopDetailPage({
 
       {/* Community rating */}
       <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-4">
-        <h2 className="font-bold text-[#1C1A16] mb-3">コミュニティの評価</h2>
+        <h2 className="font-bold text-[#1C1A16] mb-3 flex items-center gap-2">
+          コミュニティの評価
+          <HelpTooltip text="コミュニティのメンバーがこのお店につけたTier評価の分布です。S〜Dの5段階で何人がどのTierをつけたか棒グラフで確認できます。" position="bottom" />
+        </h2>
         <div className="space-y-2 mb-4">
           {TIER_LEVELS.map(tier => (
             <div key={tier} className="flex items-center gap-2">
@@ -170,7 +174,10 @@ export default async function ShopDetailPage({
 
       {/* Community avg radar chart */}
       <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-4">
-        <h2 className="font-bold text-[#1C1A16] mb-3">コミュニティ平均チャート</h2>
+        <h2 className="font-bold text-[#1C1A16] mb-3 flex items-center gap-2">
+          コミュニティ平均チャート
+          <HelpTooltip text="コミュニティ全メンバーの麺・汁・具材・並ぶ時間・提供速度・立地スコアの平均値をチャートで可視化したものです。評価した人が多いほど信頼度が上がります。" position="bottom" />
+        </h2>
         <CommunityRadarChart avgChart={avgChart} />
       </div>
 

@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import Link from 'next/link'
+import HelpTooltip from '@/components/HelpTooltip'
 
 interface Props {
   org: string
@@ -91,6 +92,7 @@ export default function SoundsClient({ org, orgId, initialBgmUrl, initialEnabled
           <span className="material-symbols-rounded text-[20px]">arrow_back</span>
         </Link>
         <h1 className="font-bold text-[#1C1A16] text-xl">BGM管理</h1>
+        <HelpTooltip text="フィードページで流れるBGMを設定できます。著作権フリーの音楽ファイルをアップロードして、コミュニティの雰囲気を演出しましょう。" position="bottom" />
       </div>
 
       <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-5 space-y-5">
@@ -122,7 +124,10 @@ export default function SoundsClient({ org, orgId, initialBgmUrl, initialEnabled
 
         {/* Upload */}
         <div>
-          <p className="text-sm font-medium text-[#1C1A16] mb-1">BGMをアップロード</p>
+          <div className="flex items-center gap-1.5 mb-1">
+            <p className="text-sm font-medium text-[#1C1A16]">BGMをアップロード</p>
+            <HelpTooltip text="mp3・m4a・wavファイルを最大10MBまでアップロードできます。著作権フリーの音源を使用してください。DOVA-SYNDROMEなどのサイトで無料入手できます。" position="right" />
+          </div>
           <p className="text-xs text-[#9C9688] mb-2">mp3 / m4a / wav（最大10MB）· 著作権フリー音源のみ</p>
           <label className="flex items-center justify-center gap-2 border-2 border-dashed border-[#E4E0D8] p-4 cursor-pointer hover:border-[#F2D400] hover:bg-[#FEFAE0] transition-colors text-[#9C9688]">
             <span className="material-symbols-rounded text-[20px]">upload</span>
@@ -143,7 +148,10 @@ export default function SoundsClient({ org, orgId, initialBgmUrl, initialEnabled
         {/* Enable toggle */}
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-[#1C1A16]">BGMを有効にする</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-medium text-[#1C1A16]">BGMを有効にする</p>
+              <HelpTooltip text="ONにするとフィードページにBGMプレイヤーが表示されます。ブラウザのAutoplay制限のため、ユーザーがクリックして再生を開始する必要があります。" position="right" />
+            </div>
             <p className="text-xs text-[#9C9688]">フィードページで自動再生（ブラウザ制限あり）</p>
           </div>
           <button
@@ -158,7 +166,10 @@ export default function SoundsClient({ org, orgId, initialBgmUrl, initialEnabled
         {/* Volume */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <p className="text-sm font-medium text-[#1C1A16]">デフォルト音量</p>
+            <div className="flex items-center gap-1.5">
+              <p className="text-sm font-medium text-[#1C1A16]">デフォルト音量</p>
+              <HelpTooltip text="フィードページでBGMプレイヤーが表示された際の初期音量です。ユーザーはプレイヤーから個別に調整できます。" position="right" />
+            </div>
             <span className="font-ui text-sm text-[#9C9688]">{volume}%</span>
           </div>
           <input

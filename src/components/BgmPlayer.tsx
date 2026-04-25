@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import HelpTooltip from '@/components/HelpTooltip'
 
 interface BgmPlayerProps {
   bgmUrl: string
@@ -49,6 +50,7 @@ export default function BgmPlayer({ bgmUrl, defaultVolume = 50 }: BgmPlayerProps
         </span>
         <span className="text-xs hidden sm:inline">{playing ? 'BGM ON' : 'BGM OFF'}</span>
       </button>
+      <HelpTooltip text="フィードページで流れるBGMです。クリックして再生・停止を切り替えられます。音量スライダーで調整も可能です。" position="top" />
       {playing && (
         <input
           type="range"

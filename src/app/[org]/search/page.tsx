@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { TIER_COLORS, getGoogleMapsUrl } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
+import HelpTooltip from '@/components/HelpTooltip'
 
 interface SearchResult {
   shop: {
@@ -51,14 +52,18 @@ export default function SearchPage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="font-bold text-[#1C1A16] text-xl mb-1">AIラーメン検索</h1>
+        <h1 className="font-bold text-[#1C1A16] text-xl mb-1 flex items-center gap-2">
+          AIラーメン検索
+          <HelpTooltip text="コミュニティメンバーの評価データをGemini AIが分析し、あなたの要望に最もマッチするお店を提案します。自然な言葉で検索できます。" position="bottom" />
+        </h1>
         <p className="text-sm text-[#9C9688]">コミュニティデータをもとにAIがおすすめを提案します</p>
       </div>
 
       <form onSubmit={handleSearch} className="bg-[#FFFFFF] border border-[#E4E0D8] p-5 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-[#1C1A16] mb-1">
+          <label className="block text-sm font-medium text-[#1C1A16] mb-1 flex items-center gap-1.5">
             エリア <span className="text-[#9C9688] font-normal text-xs">任意</span>
+            <HelpTooltip text="特定のエリアに絞り込みたい場合に入力してください。例:「渋谷周辺」「新宿」など。空欄のままでも検索できます。" position="right" />
           </label>
           <input
             type="text"
@@ -69,8 +74,9 @@ export default function SearchPage() {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-[#1C1A16] mb-1">
+          <label className="block text-sm font-medium text-[#1C1A16] mb-1 flex items-center gap-1.5">
             食べたいもの <span className="text-[#E8593C]">*</span>
+            <HelpTooltip text="食べたいラーメンの特徴を自由に入力してください。例:「こってり系で麺が太いやつ」「あっさりした魚介系」など。AIがコミュニティデータと照合します。" position="right" />
           </label>
           <textarea
             value={freeText}

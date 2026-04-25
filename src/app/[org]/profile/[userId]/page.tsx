@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { TIER_LEVELS, TIER_COLORS, getGoogleMapsUrl, formatDate } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
 import TierDetailModalTrigger from './TierDetailModalTrigger'
+import HelpTooltip from '@/components/HelpTooltip'
 
 export default async function ProfilePage({
   params,
@@ -137,15 +138,24 @@ export default async function ProfilePage({
         <div className="flex items-center gap-6 mt-4 pt-4 border-t border-[#E4E0D8]">
           <div className="text-center">
             <div className="font-ui font-bold text-[#1C1A16] text-lg">{shopCount ?? 0}</div>
-            <div className="text-xs text-[#9C9688]">🍜 行った店</div>
+            <div className="text-xs text-[#9C9688] flex items-center justify-center gap-0.5">
+              🍜 行った店
+              <HelpTooltip text="このメンバーがTierに登録したラーメン屋の総数です。" position="top" />
+            </div>
           </div>
           <div className="text-center">
             <div className="font-ui font-bold text-[#1C1A16] text-lg">{wishCount ?? 0}</div>
-            <div className="text-xs text-[#9C9688]">♡ 行きたい</div>
+            <div className="text-xs text-[#9C9688] flex items-center justify-center gap-0.5">
+              ♡ 行きたい
+              <HelpTooltip text="このメンバーがウィッシュリストに追加した「まだ行っていないが行きたい」お店の数です。" position="top" />
+            </div>
           </div>
           <div className="text-center">
             <div className="font-ui font-bold text-[#1C1A16] text-lg">{postCount ?? 0}</div>
-            <div className="text-xs text-[#9C9688]">📷 投稿</div>
+            <div className="text-xs text-[#9C9688] flex items-center justify-center gap-0.5">
+              📷 投稿
+              <HelpTooltip text="このメンバーがフィードに投稿したラーメン写真の総数です。" position="top" />
+            </div>
           </div>
         </div>
       </div>
@@ -153,11 +163,12 @@ export default async function ProfilePage({
       {/* Tier list */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-bold text-[#1C1A16]">
+          <h2 className="font-bold text-[#1C1A16] flex items-center gap-2">
             Tierリスト
             {!member.tier_public && !isOwn && (
               <span className="ml-2 text-xs font-normal text-[#9C9688]">（非公開）</span>
             )}
+            <HelpTooltip text="S〜Dの5段階でラーメン屋を格付けしたリストです。プロフィール編集から公開・非公開を切り替えられます。" position="bottom" />
           </h2>
         </div>
 
