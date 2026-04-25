@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { RAMEN_TYPES } from '@/lib/utils'
 import type { Member, RamenShop } from '@/types/database'
 import HelpTooltip from '@/components/HelpTooltip'
+import { updateMember } from '@/lib/actions/members'
 
 export default function ProfileEditPage() {
   const router = useRouter()
@@ -86,12 +87,8 @@ export default function ProfileEditPage() {
     if (!displayName.trim()) return
     setSaving(true)
     try {
-      const res = await fetch(`/api/orgs/${org}/members/me`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ displayName, bio, favoriteTypes, favoriteShopId, tierPublic, avatarUrl }),
-      })
-      if (res.ok) {
+      const result = await updateMember(org, { displayName, bio, favoriteTypes, favoriteShopId, tierPublic, avatarUrl })
+      if (!result.error) {
         router.push(`/${org}/profile/${member?.id}`)
       }
     } finally {

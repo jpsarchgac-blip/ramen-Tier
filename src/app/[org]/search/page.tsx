@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { TIER_COLORS, getGoogleMapsUrl } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
 import HelpTooltip from '@/components/HelpTooltip'
+import { searchShops } from '@/lib/actions/search'
 
 interface SearchResult {
   shop: {
@@ -34,13 +35,8 @@ export default function SearchPage() {
     setError('')
     setResults(null)
     try {
-      const res = await fetch(`/api/orgs/${org}/search`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ area, freeText }),
-      })
-      if (!res.ok) throw new Error('検索に失敗しました')
-      const data = await res.json()
+      const data = await searchShops(org, { area, freeText })
+      if (data.error) throw new Error('検索に失敗しました')
       setResults(data.candidates)
     } catch (e: any) {
       setError(e.message)

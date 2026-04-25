@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { TIER_LEVELS, TIER_COLORS, HIGHLIGHT_OPTIONS, RAMEN_TYPES } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
 import HelpTooltip from '@/components/HelpTooltip'
+import { upsertTier } from '@/lib/actions/tiers'
 
 interface PlaceInfo {
   placeId: string | null
@@ -134,18 +135,14 @@ export default function ShopAddModal({ org, onClose, onSaved, initialShop }: Sho
     if (!place || !tier) return
     setSaving(true)
     try {
-      const res = await fetch(`/api/orgs/${org}/tiers`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          shop: { ...place, ramenTypes },
-          tier,
-          scores,
-          highlights,
-          comment,
-        }),
+      const result = await upsertTier(org, {
+        shop: { ...place, ramenTypes },
+        tier,
+        scores,
+        highlights,
+        comment,
       })
-      if (res.ok) {
+      if (!result.error) {
         onSaved()
         onClose()
       }

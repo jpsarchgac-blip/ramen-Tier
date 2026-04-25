@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { formatDate } from '@/lib/utils'
+import { addComment } from '@/lib/actions/posts'
 
 interface Comment {
   id: string
@@ -28,14 +29,9 @@ export default function CommentSection({ org, postId, initialComments, myMemberI
     if (!body.trim()) return
     setPosting(true)
     try {
-      const res = await fetch(`/api/orgs/${org}/posts/${postId}/comments`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ body }),
-      })
-      if (res.ok) {
-        const comment = await res.json()
-        setComments(c => [...c, comment])
+      const result = await addComment(org, postId, body)
+      if (result.data) {
+        setComments(c => [...c, result.data as any])
         setBody('')
       }
     } finally {

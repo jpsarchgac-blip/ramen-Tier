@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { addToWishlist, removeFromWishlist } from '@/lib/actions/wishlist'
 
 interface Props {
   org: string
@@ -19,15 +20,11 @@ export default function ShopDetailClient({ org, shopId, memberId, initialWished,
     setLoading(true)
     try {
       if (wished) {
-        await fetch(`/api/orgs/${org}/wishlist/${shopId}`, { method: 'DELETE' })
+        await removeFromWishlist(org, shopId)
         setWished(false)
         setWishCount(c => c - 1)
       } else {
-        await fetch(`/api/orgs/${org}/wishlist`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ shopId }),
-        })
+        await addToWishlist(org, shopId)
         setWished(true)
         setWishCount(c => c + 1)
       }

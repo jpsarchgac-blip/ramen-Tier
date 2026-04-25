@@ -7,6 +7,7 @@ import { TIER_LEVELS, TIER_COLORS } from '@/lib/utils'
 import type { TierLevel, TierRating, RamenShop, Member } from '@/types/database'
 import TierDetailModalTrigger from './TierDetailModalTrigger'
 import HelpTooltip from '@/components/HelpTooltip'
+import { removeFromWishlist } from '@/lib/actions/wishlist'
 
 const ShopAddModal = dynamic(() => import('@/components/ShopAddModal'), { ssr: false })
 
@@ -56,7 +57,7 @@ export default function ProfileTabs({ org, member, isOwn, ratings, wishItems: in
 
   const handleRemoveWish = async (wishId: string, shopId: string) => {
     setRemovingId(wishId)
-    await fetch(`/api/orgs/${org}/wishlist/${shopId}`, { method: 'DELETE' })
+    await removeFromWishlist(org, shopId)
     setWishItems(prev => prev.filter(w => w.id !== wishId))
     setRemovingId(null)
   }

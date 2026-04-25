@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react'
 import { RAMEN_TYPES } from '@/lib/utils'
 import type { RamenShop } from '@/types/database'
+import { getShops } from '@/lib/actions/shops'
+import { uploadPostImages } from '@/lib/actions/upload'
+import { createPost } from '@/lib/actions/posts'
 
 interface Props {
   org: string
@@ -21,7 +24,7 @@ export default function PostCreateModal({ org, onClose, onPosted }: Props) {
   const [posting, setPosting] = useState(false)
 
   useEffect(() => {
-    fetch(`/api/orgs/${org}/shops`).then(r => r.json()).then(setShops).catch(() => {})
+    getShops(org).then(setShops).catch(() => {})
   }, [org])
 
   const handleImages = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -34,27 +37,18 @@ export default function PostCreateModal({ org, onClose, onPosted }: Props) {
     e.preventDefault()
     setPosting(true)
     try {
-      // Upload images
       const imageUrls: string[] = []
       if (images.length > 0) {
         setUploading(true)
         const formData = new FormData()
         images.forEach(f => formData.append('files', f))
-        formData.append('org', org)
-        const res = await fetch('/api/upload/post-images', { method: 'POST', body: formData })
-        if (res.ok) {
-          const data = await res.json()
-          imageUrls.push(...data.urls)
-        }
+        const { urls } = await uploadPostImages(org, formData)
+        imageUrls.push(...urls)
         setUploading(false)
       }
 
-      const res = await fetch(`/api/orgs/${org}/posts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caption, ramenType, shopId: shopId || null, imageUrls }),
-      })
-      if (res.ok) {
+      const result = await createPost(org, { caption, ramenType, shopId: shopId || null, imageUrls })
+      if (!result.error) {
         onPosted()
         onClose()
       }

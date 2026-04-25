@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { RAMEN_TYPES } from '@/lib/utils'
+import { setupUser } from '@/lib/actions/setup'
 
 export default function SetupPage() {
   const router = useRouter()
@@ -68,14 +69,9 @@ export default function SetupPage() {
     if (!displayName.trim()) return
     setLoading(true)
     try {
-      const res = await fetch('/api/setup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ displayName, bio, favoriteTypes, avatarUrl }),
-      })
-      const data = await res.json()
-      if (data.orgSlug) {
-        router.push(`/${data.orgSlug}/dashboard`)
+      const result = await setupUser({ displayName, bio, favoriteTypes, avatarUrl })
+      if (result.orgSlug) {
+        router.push(`/${result.orgSlug}/dashboard`)
       }
     } finally {
       setLoading(false)

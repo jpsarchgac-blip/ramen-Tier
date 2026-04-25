@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { formatDate, TIER_COLORS } from '@/lib/utils'
+import { toggleLike } from '@/lib/actions/posts'
 import type { TierLevel } from '@/types/database'
 
 interface PostCardProps {
@@ -38,9 +39,7 @@ export default function PostCard({ post, org, myMemberId }: PostCardProps) {
       setBouncing(true)
       setTimeout(() => setBouncing(false), 400)
     }
-    await fetch(`/api/orgs/${org}/posts/${post.id}/like`, {
-      method: next ? 'POST' : 'DELETE',
-    })
+    await toggleLike(org, post.id, next)
   }
 
   return (

@@ -6,6 +6,7 @@ import { TIER_LEVELS, TIER_COLORS, getGoogleMapsUrl } from '@/lib/utils'
 import type { TierLevel, TierRatingWithShop, RamenShop } from '@/types/database'
 import dynamic from 'next/dynamic'
 import HelpTooltip from '@/components/HelpTooltip'
+import { upsertTier, deleteTier, getMyTiers } from '@/lib/actions/tiers'
 
 const TIER_HELP: Record<string, string> = {
   S: '殿堂入り・また絶対行く。コミュニティで最高評価のお店です。迷ったらここへ行けば間違いなし！',
@@ -48,22 +49,18 @@ export default function TierClient({ org, initialRatings, memberId }: TierClient
     setDragging(null)
     setDragOverTier(null)
 
-    await fetch(`/api/orgs/${org}/tiers`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ shopId: rating.shop_id, tier: newTier }),
-    })
+    await upsertTier(org, { shopId: rating.shop_id, tier: newTier })
   }
 
   const handleDelete = async (ratingId: string, shopId: string) => {
     if (!confirm('このTier評価を削除しますか？')) return
     setRatings(prev => prev.filter(r => r.id !== ratingId))
-    await fetch(`/api/orgs/${org}/tiers/${shopId}`, { method: 'DELETE' })
+    await deleteTier(org, shopId)
   }
 
   const handleRefresh = async () => {
-    const res = await fetch(`/api/orgs/${org}/tiers/me`)
-    if (res.ok) setRatings(await res.json())
+    const data = await getMyTiers(org)
+    setRatings(data as any)
   }
 
   return (

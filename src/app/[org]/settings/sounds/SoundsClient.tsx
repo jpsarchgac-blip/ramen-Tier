@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import Link from 'next/link'
 import HelpTooltip from '@/components/HelpTooltip'
+import { uploadBgm, saveSounds, deleteBgm } from '@/lib/actions/sounds'
 
 interface Props {
   org: string
@@ -33,11 +34,8 @@ export default function SoundsClient({ org, orgId, initialBgmUrl, initialEnabled
     try {
       const formData = new FormData()
       formData.append('file', file)
-      const res = await fetch(`/api/orgs/${org}/settings/sounds/upload`, { method: 'POST', body: formData })
-      if (res.ok) {
-        const data = await res.json()
-        setBgmUrl(data.url)
-      }
+      const result = await uploadBgm(org, formData)
+      if (result.url) setBgmUrl(result.url)
     } finally {
       setUploading(false)
     }
@@ -46,11 +44,7 @@ export default function SoundsClient({ org, orgId, initialBgmUrl, initialEnabled
   const handleSave = async () => {
     setSaving(true)
     try {
-      await fetch(`/api/orgs/${org}/settings/sounds`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bgmUrl, bgmEnabled: enabled, bgmVolume: volume }),
-      })
+      await saveSounds(org, { bgmUrl, bgmEnabled: enabled, bgmVolume: volume })
     } finally {
       setSaving(false)
     }
@@ -60,7 +54,7 @@ export default function SoundsClient({ org, orgId, initialBgmUrl, initialEnabled
     if (!confirm('BGMを削除しますか？')) return
     setDeleting(true)
     try {
-      await fetch(`/api/orgs/${org}/settings/sounds`, { method: 'DELETE' })
+      await deleteBgm(org)
       setBgmUrl(null)
       setEnabled(false)
       if (audioRef.current) { audioRef.current.pause(); setPreviewPlaying(false) }
