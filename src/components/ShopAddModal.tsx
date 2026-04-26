@@ -43,12 +43,12 @@ export default function ShopAddModal({ org, onClose, onSaved, initialShop }: Sho
   )
   const [tier, setTier] = useState<TierLevel | null>(null)
   const [scores, setScores] = useState({
-    noodle: null as number | null,
-    soup: null as number | null,
-    toppings: null as number | null,
-    wait: null as number | null,
-    speed: null as number | null,
-    location: null as number | null,
+    noodle: 5,
+    soup: 5,
+    toppings: 5,
+    wait: 5,
+    speed: 5,
+    location: 5,
   })
   const [highlights, setHighlights] = useState<string[]>([])
   const [comment, setComment] = useState('')
@@ -122,7 +122,7 @@ export default function ShopAddModal({ org, onClose, onSaved, initialShop }: Sho
     setStep(2)
   }
 
-  const setScore = (key: keyof typeof scores, val: number | null) =>
+  const setScore = (key: keyof typeof scores, val: number) =>
     setScores(prev => ({ ...prev, [key]: val }))
 
   const toggleHighlight = (h: string) =>
@@ -155,27 +155,65 @@ export default function ShopAddModal({ org, onClose, onSaved, initialShop }: Sho
     const val = scores[scoreKey]
     return (
       <div className="flex items-center gap-3">
-        <span className="text-sm text-[#1C1A16] w-20 shrink-0">{label}</span>
-        <div className="flex items-center gap-2 flex-1">
-          <input
-            type="checkbox"
-            checked={val !== null}
-            onChange={e => setScore(scoreKey, e.target.checked ? 5.0 : null)}
-            className="shrink-0"
-          />
-          <input
-            type="range"
-            min={0} max={10} step={0.5}
-            value={val ?? 5}
-            disabled={val === null}
-            onChange={e => setScore(scoreKey, parseFloat(e.target.value))}
-            className="flex-1"
-          />
-          <span className="font-ui text-sm text-[#1C1A16] w-8 text-right">
-            {val !== null ? val.toFixed(1) : '—'}
-          </span>
-        </div>
+        <span className="text-sm text-[#1C1A16] w-16 shrink-0">{label}</span>
+        <input
+          type="range"
+          min={0} max={10} step={0.5}
+          value={val}
+          onChange={e => setScore(scoreKey, parseFloat(e.target.value))}
+          className="flex-1"
+        />
+        <span className="font-ui text-sm font-medium text-[#1C1A16] w-8 text-right">{val.toFixed(1)}</span>
       </div>
+    )
+  }
+
+  const RadarChart = () => {
+    const cx = 140, cy = 115, r = 78
+    const axes = [
+      { key: 'noodle', label: '麺', angle: -Math.PI / 2 },
+      { key: 'soup', label: '汁', angle: -Math.PI / 6 },
+      { key: 'toppings', label: '具材', angle: Math.PI / 6 },
+      { key: 'wait', label: '並び', angle: Math.PI / 2 },
+      { key: 'speed', label: '速度', angle: 5 * Math.PI / 6 },
+      { key: 'location', label: '立地', angle: -5 * Math.PI / 6 },
+    ]
+    const pt = (v: number, angle: number) => ({
+      x: cx + (v / 10) * r * Math.cos(angle),
+      y: cy + (v / 10) * r * Math.sin(angle),
+    })
+    const labelPt = (angle: number) => ({
+      x: cx + 100 * Math.cos(angle),
+      y: cy + 100 * Math.sin(angle),
+    })
+    const gridLevels = [2, 4, 6, 8, 10]
+    const dataPoints = axes.map(a => pt(scores[a.key as keyof typeof scores], a.angle))
+    const dataPath = dataPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') + 'Z'
+    return (
+      <svg viewBox="0 0 280 230" className="w-full max-w-[220px] mx-auto">
+        {gridLevels.map(level => {
+          const pts = axes.map(a => pt(level, a.angle))
+          const path = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ') + 'Z'
+          return <path key={level} d={path} fill="none" stroke="#E4E0D8" strokeWidth="0.8" />
+        })}
+        {axes.map(a => {
+          const end = pt(10, a.angle)
+          return <line key={a.key} x1={cx} y1={cy} x2={end.x.toFixed(1)} y2={end.y.toFixed(1)} stroke="#E4E0D8" strokeWidth="0.8" />
+        })}
+        <path d={dataPath} fill="#F2D400" fillOpacity="0.45" stroke="#B8A000" strokeWidth="2" />
+        {dataPoints.map((p, i) => (
+          <circle key={i} cx={p.x.toFixed(1)} cy={p.y.toFixed(1)} r="3" fill="#B8A000" />
+        ))}
+        {axes.map(a => {
+          const lp = labelPt(a.angle)
+          const anchor = Math.abs(Math.cos(a.angle)) < 0.15 ? 'middle' : Math.cos(a.angle) > 0 ? 'start' : 'end'
+          return (
+            <text key={a.key} x={lp.x.toFixed(1)} y={lp.y.toFixed(1)} textAnchor={anchor} dominantBaseline="middle" fontSize="11" fill="#9C9688">
+              {a.label}
+            </text>
+          )
+        })}
+      </svg>
     )
   }
 
@@ -347,11 +385,11 @@ export default function ShopAddModal({ org, onClose, onSaved, initialShop }: Sho
           {/* Step 3: Radar chart scores */}
           {step === 3 && (
             <div className="space-y-4">
-              <p className="text-sm text-[#9C9688]">チェックを入れたスコアのみ評価に含まれます（任意）</p>
+              <RadarChart />
               <div className="space-y-3">
                 <div className="flex items-center gap-1.5">
                   <p className="text-xs font-semibold text-[#9C9688] uppercase tracking-wide">ラーメンチャート</p>
-                  <HelpTooltip text="麺・汁・具材の3軸でラーメン自体の品質を評価します。チェックを入れた項目だけが評価に含まれ、他のメンバーとの比較チャートに反映されます。" position="right" />
+                  <HelpTooltip text="麺・汁・具材の3軸でラーメン自体の品質を評価します。スライダーを動かすとチャートがリアルタイムで更新されます。" position="right" />
                 </div>
                 <ScoreSlider label="麺" scoreKey="noodle" />
                 <ScoreSlider label="汁" scoreKey="soup" />
@@ -363,7 +401,7 @@ export default function ShopAddModal({ org, onClose, onSaved, initialShop }: Sho
                   <p className="text-xs font-semibold text-[#9C9688] uppercase tracking-wide">店チャート</p>
                   <HelpTooltip text="並ぶ時間・提供速度・立地の3軸でお店の使い勝手を評価します。行列が少なく提供が早いほど高スコアになります。" position="right" />
                 </div>
-                <ScoreSlider label="並ぶ時間" scoreKey="wait" />
+                <ScoreSlider label="並び" scoreKey="wait" />
                 <ScoreSlider label="提供速度" scoreKey="speed" />
                 <ScoreSlider label="立地" scoreKey="location" />
               </div>

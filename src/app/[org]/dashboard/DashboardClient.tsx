@@ -80,9 +80,12 @@ export default function DashboardClient({ org, shopStats, members, recentPosts, 
         </h2>
         <div className="flex gap-3 overflow-x-auto pb-2">
           {topShops.length === 0 && (
-            <p className="text-[#9C9688] text-sm">
-              {filter ? `「${filter}」のラーメン屋はまだ登録されていません。` : 'まだ評価がありません。Tierでラーメン屋を追加してみましょう！'}
-            </p>
+            Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="relative flex-none w-36 h-44 border border-dashed border-[#E4E0D8] bg-[#FFFFFF] flex flex-col items-center justify-center gap-1">
+                <span className="material-symbols-rounded text-[28px] text-[#E4E0D8]">ramen_dining</span>
+                <span className="text-[10px] text-[#E4E0D8] font-ui">#{i + 1}</span>
+              </div>
+            ))
           )}
           {topShops.map((shop, i) => (
             <Link
@@ -115,14 +118,16 @@ export default function DashboardClient({ org, shopStats, members, recentPosts, 
       </section>
 
       {/* Tier distribution chart */}
-      {topThree.length > 0 && (
-        <section>
-          <h2 className="font-bold text-[#1C1A16] text-lg mb-3 flex items-center gap-2">
-            評価分布
-            <HelpTooltip text="人気TOP3のお店について、S〜Dの各Tier評価に何人がつけたかを棒グラフで表示します。コミュニティの評価傾向が一目でわかります。" position="bottom" />
-          </h2>
-          <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-4">
-            {topThree.map(shop => (
+      <section>
+        <h2 className="font-bold text-[#1C1A16] text-lg mb-3 flex items-center gap-2">
+          評価分布
+          <HelpTooltip text="人気TOP3のお店について、S〜Dの各Tier評価に何人がつけたかを棒グラフで表示します。コミュニティの評価傾向が一目でわかります。" position="bottom" />
+        </h2>
+        <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-4">
+          {topThree.length === 0 ? (
+            <p className="text-sm text-[#9C9688] text-center py-2">まだ評価データがありません。Tierでラーメン屋を追加してみましょう！</p>
+          ) : (
+            topThree.map(shop => (
               <div key={shop.shopId} className="mb-4 last:mb-0">
                 <Link href={`/${org}/shops/${shop.shopId}`} className="text-sm font-medium text-[#1C1A16] mb-2 truncate hover:text-[#F2D400] block">{shop.name}</Link>
                 <div className="space-y-1">
@@ -144,10 +149,10 @@ export default function DashboardClient({ org, shopStats, members, recentPosts, 
                   })}
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+            ))
+          )}
+        </div>
+      </section>
 
       {/* Members */}
       <section>

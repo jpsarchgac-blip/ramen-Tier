@@ -19,6 +19,7 @@ export default function ProfileEditPage() {
   const [favoriteShopId, setFavoriteShopId] = useState<string | null>(null)
   const [tierPublic, setTierPublic] = useState(true)
   const [avatarUrl, setAvatarUrl] = useState('')
+  const [avatarLoadError, setAvatarLoadError] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -50,6 +51,7 @@ export default function ProfileEditPage() {
       setFavoriteShopId(m.favorite_shop_id ?? null)
       setTierPublic(m.tier_public)
       setAvatarUrl(m.avatar_url ?? '')
+      setAvatarLoadError(false)
 
       const { data: myShops } = await supabase
         .from('tier_ratings')
@@ -115,8 +117,13 @@ export default function ProfileEditPage() {
         <form onSubmit={handleSave} className="space-y-5">
           {/* Avatar */}
           <div className="flex flex-col items-center gap-3">
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="avatar" className="w-20 h-20 rounded-full object-cover border-2 border-[#F2D400]" />
+            {(avatarUrl && !avatarLoadError) ? (
+              <img
+                src={avatarUrl}
+                alt="avatar"
+                className="w-20 h-20 rounded-full object-cover border-2 border-[#F2D400]"
+                onError={() => setAvatarLoadError(true)}
+              />
             ) : (
               <div className="w-20 h-20 rounded-full bg-[#FEFAE0] border-2 border-[#F2D400] flex items-center justify-center">
                 <span className="material-symbols-rounded text-[32px] text-[#B8A000]">person</span>
@@ -205,10 +212,10 @@ export default function ProfileEditPage() {
             <button
               type="button"
               onClick={() => setTierPublic(v => !v)}
-              className={`relative w-12 h-6 transition-colors ${tierPublic ? 'bg-[#F2D400]' : 'bg-[#E4E0D8]'}`}
+              className={`relative w-12 h-6 rounded-full overflow-hidden transition-colors ${tierPublic ? 'bg-[#F2D400]' : 'bg-[#E4E0D8]'}`}
             >
               <span
-                className={`absolute top-1 w-4 h-4 bg-[#FFFFFF] transition-transform ${tierPublic ? 'translate-x-7' : 'translate-x-1'}`}
+                className={`absolute top-1 w-4 h-4 rounded-full bg-[#FFFFFF] shadow transition-transform ${tierPublic ? 'translate-x-7' : 'translate-x-1'}`}
               />
             </button>
           </div>

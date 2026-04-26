@@ -162,7 +162,7 @@ export default async function ProfilePage({
           <div className="text-center">
             <div className="font-ui font-bold text-[#1C1A16] text-lg">{postCount ?? 0}</div>
             <div className="text-xs text-[#9C9688] flex items-center justify-center gap-0.5">
-              📷 投稿
+              <span className="material-symbols-rounded text-[12px]">photo_camera</span> 投稿
               <HelpTooltip text="このメンバーがフィードに投稿したラーメン写真の総数です。" position="top" />
             </div>
           </div>

@@ -17,19 +17,19 @@ export default async function OrgLayout({
 
   const { data: member } = await supabase
     .from('members')
-    .select('*, organizations(slug)')
+    .select('*, organizations(slug, logo_url)')
     .eq('user_id', user.id)
     .single()
 
   if (!member) redirect('/login')
   if (!member.is_setup_done) redirect('/setup')
 
-  const orgSlug = (member.organizations as unknown as { slug: string } | null)?.slug
-  if (orgSlug !== org) redirect('/login')
+  const orgData = member.organizations as unknown as { slug: string; logo_url: string | null } | null
+  if (orgData?.slug !== org) redirect('/login')
 
   return (
     <div className="min-h-screen bg-[#F7F5F0]">
-      <Header org={org} member={member} />
+      <Header org={org} member={member} orgLogoUrl={orgData?.logo_url ?? null} />
       <main className="pt-14 max-w-5xl mx-auto px-4 py-6">
         {children}
       </main>

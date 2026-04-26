@@ -10,6 +10,7 @@ import type { Member } from '@/types/database'
 interface HeaderProps {
   org: string
   member: Member | null
+  orgLogoUrl?: string | null
 }
 
 const NAV_ITEMS = [
@@ -39,7 +40,7 @@ const NAV_ITEMS = [
   },
 ]
 
-export default function Header({ org, member }: HeaderProps) {
+export default function Header({ org, member, orgLogoUrl }: HeaderProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -58,12 +59,11 @@ export default function Header({ org, member }: HeaderProps) {
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#FFFFFF] border-b border-[#E4E0D8] h-14">
       <div className="max-w-5xl mx-auto px-4 h-full flex items-center gap-4">
         {/* Logo */}
-        <Link
-          href={`/${org}/dashboard`}
-          className="font-display text-[#1C1A16] text-[20px] font-bold whitespace-nowrap mr-2 flex items-center gap-1"
-        >
-          🍜 <span className="hidden sm:inline">ラーメンTier</span>
-        </Link>
+        {orgLogoUrl && (
+          <Link href={`/${org}/dashboard`} className="mr-2 shrink-0">
+            <img src={orgLogoUrl} alt="logo" className="h-8 w-auto max-w-[120px] object-contain" />
+          </Link>
+        )}
 
         {/* Nav */}
         <nav className="flex items-center gap-1 flex-1">
@@ -113,8 +113,8 @@ export default function Header({ org, member }: HeaderProps) {
                   style={{ boxShadow: menuOpen ? '0 0 0 3px #F2D400' : undefined }}
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-[#F2D400] flex items-center justify-center">
-                  <span className="material-symbols-rounded text-[16px] text-[#1C1A16]">person</span>
+                <div className="w-8 h-8 rounded-full bg-[#FEFAE0] border border-[#F2D400] flex items-center justify-center">
+                  <span className="material-symbols-rounded text-[16px] text-[#B8A000]">person</span>
                 </div>
               )}
               <span className="material-symbols-rounded text-[16px] text-[#9C9688]">expand_more</span>
@@ -142,6 +142,14 @@ export default function Header({ org, member }: HeaderProps) {
                   >
                     <span className="material-symbols-rounded text-[16px]">edit</span>
                     プロフィールを編集する
+                  </Link>
+                  <Link
+                    href={`/${org}/account`}
+                    className="flex items-center gap-2 px-4 py-2.5 text-sm text-[#1C1A16] hover:bg-[#FEFAE0] transition-colors"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    <span className="material-symbols-rounded text-[16px]">manage_accounts</span>
+                    アカウント設定
                   </Link>
                   <hr className="border-[#E4E0D8]" />
                   <button

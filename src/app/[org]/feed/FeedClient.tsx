@@ -46,7 +46,7 @@ export default function FeedClient({ org, initialPosts, myMemberId, bgmUrl, bgmV
       {/* Posts */}
       {posts.length === 0 ? (
         <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-8 text-center text-[#9C9688]">
-          <div className="text-3xl mb-2">📷</div>
+          <span className="material-symbols-rounded text-[48px] text-[#9C9688] mb-2">photo_camera</span>
           <p className="text-sm">まだ投稿がありません。最初の投稿をしてみましょう！</p>
         </div>
       ) : (

@@ -58,6 +58,7 @@ export interface Organization {
   name: string
   slug: string
   allowed_domain: string
+  logo_url: string | null
   bgm_url: string | null
   bgm_enabled: boolean
   bgm_volume: number

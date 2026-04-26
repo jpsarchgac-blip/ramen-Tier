@@ -35,3 +35,22 @@ export async function updateMember(orgSlug: string, payload: {
   if (error) return { error: error.message }
   return { data }
 }
+
+export async function deleteAccount(orgSlug: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Unauthorized' }
+
+  const { data: org } = await supabase.from('organizations').select('id').eq('slug', orgSlug).single()
+  if (!org) return { error: 'Not found' }
+
+  const { error } = await supabase
+    .from('members')
+    .delete()
+    .eq('user_id', user.id)
+    .eq('organization_id', org.id)
+
+  if (error) return { error: error.message }
+  await supabase.auth.signOut()
+  return { ok: true }
+}
