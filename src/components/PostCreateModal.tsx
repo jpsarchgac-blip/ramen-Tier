@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { RAMEN_TYPES } from '@/lib/utils'
 import type { RamenShop } from '@/types/database'
-import { getMyShops } from '@/lib/actions/shops'
 import { createClient } from '@/lib/supabase/client'
 
 interface Props {
@@ -21,9 +20,26 @@ export default function PostCreateModal({ org, onClose, onPosted }: Props) {
   const [shops, setShops] = useState<RamenShop[]>([])
   const [uploading, setUploading] = useState(false)
   const [posting, setPosting] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
-    getMyShops(org).then(setShops).catch(() => {})
+    const load = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: orgData } = await supabase.from('organizations').select('id').eq('slug', org).single()
+      if (!orgData) return
+      const { data: member } = await supabase.from('members').select('id').eq('user_id', user.id).eq('organization_id', orgData.id).single()
+      if (!member) return
+      const { data: ratings } = await supabase
+        .from('tier_ratings')
+        .select('ramen_shops(*)')
+        .eq('member_id', member.id)
+        .order('updated_at', { ascending: false })
+      const shopList = (ratings ?? []).map((r: any) => r.ramen_shops).filter(Boolean)
+      setShops(shopList)
+    }
+    load().catch(() => {})
   }, [org])
 
   const handleImages = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -35,41 +51,54 @@ export default function PostCreateModal({ org, onClose, onPosted }: Props) {
   const handlePost = async (e: React.FormEvent) => {
     e.preventDefault()
     setPosting(true)
+    setError('')
     try {
       const supabase = createClient()
-      const imageUrls: string[] = []
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { setError('ログインが必要です'); return }
 
+      const { data: orgData } = await supabase.from('organizations').select('id').eq('slug', org).single()
+      if (!orgData) { setError('組織が見つかりません'); return }
+
+      const { data: member } = await supabase.from('members').select('id').eq('user_id', user.id).eq('organization_id', orgData.id).single()
+      if (!member) { setError('メンバーが見つかりません'); return }
+
+      // Upload images directly to Supabase Storage
+      const imageUrls: string[] = []
       if (images.length > 0) {
         setUploading(true)
-        const { data: orgData } = await supabase
-          .from('organizations').select('id').eq('slug', org).single()
-        if (orgData) {
-          const postId = crypto.randomUUID()
-          for (const file of images.slice(0, 4)) {
-            const ext = file.name.split('.').pop() ?? 'jpg'
-            const path = `${orgData.id}/${postId}/${crypto.randomUUID()}.${ext}`
-            const { data } = await supabase.storage
-              .from('post-images')
-              .upload(path, file, { contentType: file.type })
-            if (data) {
-              const { data: urlData } = supabase.storage.from('post-images').getPublicUrl(path)
-              imageUrls.push(urlData.publicUrl)
-            }
+        const postId = crypto.randomUUID()
+        for (const file of images.slice(0, 4)) {
+          const ext = file.name.split('.').pop() ?? 'jpg'
+          const path = `${orgData.id}/${postId}/${crypto.randomUUID()}.${ext}`
+          const { data } = await supabase.storage
+            .from('post-images')
+            .upload(path, file, { contentType: file.type })
+          if (data) {
+            const { data: urlData } = supabase.storage.from('post-images').getPublicUrl(path)
+            imageUrls.push(urlData.publicUrl)
           }
         }
         setUploading(false)
       }
 
-      const res = await fetch(`/api/orgs/${org}/posts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ caption, ramenType, shopId: shopId || null, imageUrls }),
+      // Insert post directly
+      const { error: insertError } = await supabase.from('posts').insert({
+        member_id: member.id,
+        organization_id: orgData.id,
+        shop_id: shopId || null,
+        caption: caption || null,
+        ramen_type: ramenType || null,
+        image_urls: imageUrls.length > 0 ? imageUrls : null,
       })
-      const result = await res.json()
-      if (!result.error) {
-        onPosted()
-        onClose()
+
+      if (insertError) {
+        setError(`投稿に失敗しました: ${insertError.message}`)
+        return
       }
+
+      onPosted()
+      onClose()
     } finally {
       setPosting(false)
       setUploading(false)
@@ -154,6 +183,10 @@ export default function PostCreateModal({ org, onClose, onPosted }: Props) {
               className="w-full border border-[#E4E0D8] px-3 py-2 text-sm outline-none focus:border-[#F2D400] resize-none"
             />
           </div>
+
+          {error && (
+            <p className="text-sm text-[#E8593C]">{error}</p>
+          )}
 
           <button
             type="submit"

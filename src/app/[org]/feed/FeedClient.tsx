@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import dynamic from 'next/dynamic'
 import PostCard from '@/components/PostCard'
 import HelpTooltip from '@/components/HelpTooltip'
@@ -19,11 +20,39 @@ interface FeedClientProps {
 export default function FeedClient({ org, initialPosts, myMemberId, bgmUrl, bgmVolume }: FeedClientProps) {
   const [posts, setPosts] = useState(initialPosts)
   const [showCreate, setShowCreate] = useState(false)
+  const [loading, setLoading] = useState(initialPosts.length === 0)
 
-  const handleRefresh = async () => {
-    const res = await fetch(`/api/orgs/${org}/feed`)
-    if (res.ok) setPosts(await res.json())
+  const loadPosts = async () => {
+    const supabase = createClient()
+    const { data: orgData } = await supabase
+      .from('organizations').select('id').eq('slug', org).single()
+    if (!orgData) return
+
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*, members(id, display_name, avatar_url), ramen_shops(id, name), post_likes(member_id), post_comments(id)')
+      .eq('organization_id', orgData.id)
+      .order('created_at', { ascending: false })
+      .limit(20)
+
+    if (error) {
+      // fallback without like/comment counts
+      const { data: fallback } = await supabase
+        .from('posts')
+        .select('*, members(id, display_name, avatar_url), ramen_shops(id, name)')
+        .eq('organization_id', orgData.id)
+        .order('created_at', { ascending: false })
+        .limit(20)
+      if (fallback) setPosts(fallback.map(p => ({ ...p, post_likes: [], post_comments: [] })))
+    } else if (data) {
+      setPosts(data)
+    }
+    setLoading(false)
   }
+
+  useEffect(() => {
+    loadPosts()
+  }, [org])
 
   return (
     <div className="max-w-lg mx-auto space-y-4">
@@ -43,7 +72,12 @@ export default function FeedClient({ org, initialPosts, myMemberId, bgmUrl, bgmV
       </div>
 
       {/* Posts */}
-      {posts.length === 0 ? (
+      {loading ? (
+        <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-8 text-center text-[#9C9688]">
+          <span className="material-symbols-rounded text-[32px] text-[#E4E0D8] mb-2">sync</span>
+          <p className="text-sm">読み込み中...</p>
+        </div>
+      ) : posts.length === 0 ? (
         <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-8 text-center text-[#9C9688]">
           <span className="material-symbols-rounded text-[48px] text-[#9C9688] mb-2">photo_camera</span>
           <p className="text-sm">まだ投稿がありません。最初の投稿をしてみましょう！</p>
@@ -55,7 +89,7 @@ export default function FeedClient({ org, initialPosts, myMemberId, bgmUrl, bgmV
       )}
 
       {showCreate && (
-        <PostCreateModal org={org} onClose={() => setShowCreate(false)} onPosted={handleRefresh} />
+        <PostCreateModal org={org} onClose={() => setShowCreate(false)} onPosted={loadPosts} />
       )}
 
       {bgmUrl && (
