@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react'
 import { RAMEN_TYPES } from '@/lib/utils'
 import type { RamenShop } from '@/types/database'
 import { getMyShops } from '@/lib/actions/shops'
-import { uploadPostImages } from '@/lib/actions/upload'
-import { createPost } from '@/lib/actions/posts'
+import { createClient } from '@/lib/supabase/client'
 
 interface Props {
   org: string
@@ -37,17 +36,36 @@ export default function PostCreateModal({ org, onClose, onPosted }: Props) {
     e.preventDefault()
     setPosting(true)
     try {
+      const supabase = createClient()
       const imageUrls: string[] = []
+
       if (images.length > 0) {
         setUploading(true)
-        const formData = new FormData()
-        images.forEach(f => formData.append('files', f))
-        const { urls } = await uploadPostImages(org, formData)
-        imageUrls.push(...urls)
+        const { data: orgData } = await supabase
+          .from('organizations').select('id').eq('slug', org).single()
+        if (orgData) {
+          const postId = crypto.randomUUID()
+          for (const file of images.slice(0, 4)) {
+            const ext = file.name.split('.').pop() ?? 'jpg'
+            const path = `${orgData.id}/${postId}/${crypto.randomUUID()}.${ext}`
+            const { data } = await supabase.storage
+              .from('post-images')
+              .upload(path, file, { contentType: file.type })
+            if (data) {
+              const { data: urlData } = supabase.storage.from('post-images').getPublicUrl(path)
+              imageUrls.push(urlData.publicUrl)
+            }
+          }
+        }
         setUploading(false)
       }
 
-      const result = await createPost(org, { caption, ramenType, shopId: shopId || null, imageUrls })
+      const res = await fetch(`/api/orgs/${org}/posts`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ caption, ramenType, shopId: shopId || null, imageUrls }),
+      })
+      const result = await res.json()
       if (!result.error) {
         onPosted()
         onClose()
