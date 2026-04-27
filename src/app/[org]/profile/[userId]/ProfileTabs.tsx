@@ -8,6 +8,7 @@ import type { TierLevel, TierRating, RamenShop, Member } from '@/types/database'
 import TierDetailModalTrigger from './TierDetailModalTrigger'
 import HelpTooltip from '@/components/HelpTooltip'
 import { removeFromWishlist } from '@/lib/actions/wishlist'
+import { createClient } from '@/lib/supabase/client'
 
 const ShopAddModal = dynamic(() => import('@/components/ShopAddModal'), { ssr: false })
 
@@ -49,11 +50,26 @@ interface Props {
 
 type Tab = 'tier' | 'wish' | 'posts'
 
-export default function ProfileTabs({ org, member, isOwn, ratings, wishItems: initialWishItems, posts, grouped }: Props) {
+export default function ProfileTabs({ org, member, isOwn, ratings, wishItems: initialWishItems, posts: initialPosts, grouped }: Props) {
   const [tab, setTab] = useState<Tab>('tier')
   const [wishItems, setWishItems] = useState(initialWishItems)
+  const [postItems, setPostItems] = useState(initialPosts)
   const [upgradeShop, setUpgradeShop] = useState<WishItem['ramen_shops'] | null>(null)
   const [removingId, setRemovingId] = useState<string | null>(null)
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null)
+
+  const handleDeletePost = async (postId: string) => {
+    if (!confirm('この投稿を削除しますか？')) return
+    setDeletingPostId(postId)
+    const supabase = createClient()
+    const { error } = await supabase.from('posts').delete().eq('id', postId)
+    if (error) {
+      alert(`削除に失敗しました: ${error.message}`)
+    } else {
+      setPostItems(prev => prev.filter(p => p.id !== postId))
+    }
+    setDeletingPostId(null)
+  }
 
   const handleRemoveWish = async (wishId: string, shopId: string) => {
     setRemovingId(wishId)
@@ -70,7 +86,7 @@ export default function ProfileTabs({ org, member, isOwn, ratings, wishItems: in
   const TABS: { key: Tab; label: string; help: string }[] = [
     { key: 'tier', label: `Tierリスト（${ratings.length}）`, help: 'S〜Dの5段階でランク付けしたラーメン屋の一覧です。カードをクリックすると詳細な評価を確認できます。' },
     { key: 'wish', label: `行きたい（${wishItems.length}）`, help: 'まだ行っていないけど気になっているお店のリストです。「行った！」ボタンでTier評価に格上げできます。' },
-    { key: 'posts', label: `投稿（${posts.length}）`, help: 'このメンバーがフィードに投稿したラーメン写真の一覧です。' },
+    { key: 'posts', label: `投稿（${postItems.length}）`, help: 'このメンバーがフィードに投稿したラーメン写真の一覧です。' },
   ]
 
   return (
@@ -90,7 +106,7 @@ export default function ProfileTabs({ org, member, isOwn, ratings, wishItems: in
             {t.key === 'tier' && 'Tier'}
             {t.key === 'wish' && '行きたい'}
             {t.key === 'posts' && '投稿'}
-            <span className="text-xs">({t.key === 'tier' ? ratings.length : t.key === 'wish' ? wishItems.length : posts.length})</span>
+            <span className="text-xs">({t.key === 'tier' ? ratings.length : t.key === 'wish' ? wishItems.length : postItems.length})</span>
             <HelpTooltip text={t.help} position="bottom" />
           </button>
         ))}
@@ -196,22 +212,34 @@ export default function ProfileTabs({ org, member, isOwn, ratings, wishItems: in
       {/* Posts tab */}
       {tab === 'posts' && (
         <div className="animate-fade-in">
-          {posts.length === 0 ? (
+          {postItems.length === 0 ? (
             <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-6 text-center text-[#9C9688] text-sm">
               まだ投稿がありません
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-2">
-              {posts.map(post => (
-                <Link key={post.id} href={`/${org}/feed/${post.id}`} className="block aspect-square bg-[#F7F5F0] border border-[#E4E0D8] overflow-hidden group">
-                  {post.image_urls?.[0] ? (
-                    <img src={post.image_urls[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-2xl">🍜</span>
-                    </div>
+              {postItems.map(post => (
+                <div key={post.id} className="relative aspect-square bg-[#F7F5F0] border border-[#E4E0D8] overflow-hidden group">
+                  <Link href={`/${org}/feed/${post.id}`} className="block w-full h-full">
+                    {post.image_urls?.[0] ? (
+                      <img src={post.image_urls[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="material-symbols-rounded text-[32px] text-[#E4E0D8]">ramen_dining</span>
+                      </div>
+                    )}
+                  </Link>
+                  {isOwn && (
+                    <button
+                      onClick={() => handleDeletePost(post.id)}
+                      disabled={deletingPostId === post.id}
+                      className="absolute top-1 right-1 bg-black/60 text-white p-1 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                      title="削除"
+                    >
+                      <span className="material-symbols-rounded text-[14px]">delete</span>
+                    </button>
                   )}
-                </Link>
+                </div>
               ))}
             </div>
           )}
