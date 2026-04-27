@@ -20,11 +20,24 @@ export default async function PostDetailPage({
   const { data: myMember } = await supabase
     .from('members').select('id').eq('user_id', user!.id).eq('organization_id', organization.id).single()
 
-  const { data: post } = await supabase
+  let post: any = null
+  const { data: postData, error: postError } = await supabase
     .from('posts')
     .select('*, members(id, display_name, avatar_url), ramen_shops(id, name), post_likes(member_id), post_comments(id)')
     .eq('id', postId)
     .single()
+
+  if (postError || !postData) {
+    const { data: fallback } = await supabase
+      .from('posts')
+      .select('*, members(id, display_name, avatar_url), ramen_shops(id, name)')
+      .eq('id', postId)
+      .single()
+    post = fallback ? { ...fallback, post_likes: [], post_comments: [] } : null
+  } else {
+    post = postData
+  }
+
   if (!post) notFound()
 
   const { data: comments } = await supabase

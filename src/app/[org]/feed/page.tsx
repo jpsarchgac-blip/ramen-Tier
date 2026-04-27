@@ -20,17 +20,30 @@ export default async function FeedPage({ params }: { params: Promise<{ org: stri
     .eq('organization_id', organization.id)
     .single()
 
-  const { data: posts } = await supabase
+  let posts: any[] = []
+  const { data: postsData, error: postsError } = await supabase
     .from('posts')
     .select('*, members(id, display_name, avatar_url), ramen_shops(id, name), post_likes(member_id), post_comments(id)')
     .eq('organization_id', organization.id)
     .order('created_at', { ascending: false })
     .limit(20)
 
+  if (postsError) {
+    const { data: fallback } = await supabase
+      .from('posts')
+      .select('*, members(id, display_name, avatar_url), ramen_shops(id, name)')
+      .eq('organization_id', organization.id)
+      .order('created_at', { ascending: false })
+      .limit(20)
+    posts = (fallback ?? []).map((p: any) => ({ ...p, post_likes: [], post_comments: [] }))
+  } else {
+    posts = postsData ?? []
+  }
+
   return (
     <FeedClient
       org={org}
-      initialPosts={(posts ?? []) as any}
+      initialPosts={posts as any}
       myMemberId={myMember!.id}
       bgmUrl={organization.bgm_enabled ? organization.bgm_url : null}
       bgmVolume={organization.bgm_volume}
