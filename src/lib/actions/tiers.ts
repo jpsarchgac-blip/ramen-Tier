@@ -78,23 +78,34 @@ export async function upsertTier(orgSlug: string, body: {
 
   if (!shopId) return { error: 'shopId required' }
 
+  const upsertPayload: Record<string, unknown> = {
+    member_id: member!.id,
+    shop_id: shopId,
+    organization_id: org!.id,
+    tier: body.tier,
+    updated_at: new Date().toISOString(),
+  }
+
+  // Only update score columns when explicitly provided — omitting them preserves existing scores
+  if (body.scores !== undefined) {
+    upsertPayload.score_noodle = body.scores.noodle ?? null
+    upsertPayload.score_soup = body.scores.soup ?? null
+    upsertPayload.score_toppings = body.scores.toppings ?? null
+    upsertPayload.score_wait = body.scores.wait ?? null
+    upsertPayload.score_speed = body.scores.speed ?? null
+    upsertPayload.score_location = body.scores.location ?? null
+  }
+
+  if (body.highlights !== undefined) {
+    upsertPayload.highlights = body.highlights?.length ? body.highlights : null
+  }
+  if (body.comment !== undefined) {
+    upsertPayload.comment = body.comment || null
+  }
+
   const { data, error } = await supabase
     .from('tier_ratings')
-    .upsert({
-      member_id: member!.id,
-      shop_id: shopId,
-      organization_id: org!.id,
-      tier: body.tier,
-      score_noodle: body.scores?.noodle ?? null,
-      score_soup: body.scores?.soup ?? null,
-      score_toppings: body.scores?.toppings ?? null,
-      score_wait: body.scores?.wait ?? null,
-      score_speed: body.scores?.speed ?? null,
-      score_location: body.scores?.location ?? null,
-      highlights: body.highlights?.length ? body.highlights : null,
-      comment: body.comment || null,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'member_id,shop_id' })
+    .upsert(upsertPayload, { onConflict: 'member_id,shop_id' })
     .select()
     .single()
 

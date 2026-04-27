@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { formatDate } from '@/lib/utils'
+import { redirect, notFound } from 'next/navigation'
 import PostCard from '@/components/PostCard'
 import CommentSection from './CommentSection'
 
@@ -14,32 +13,37 @@ export default async function PostDetailPage({
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
   const { data: organization } = await supabase.from('organizations').select('id').eq('slug', org).single()
   if (!organization) notFound()
 
   const { data: myMember } = await supabase
-    .from('members').select('id').eq('user_id', user!.id).eq('organization_id', organization.id).single()
+    .from('members').select('id').eq('user_id', user.id).eq('organization_id', organization.id).single()
 
   let post: any = null
   const { data: postData, error: postError } = await supabase
     .from('posts')
     .select('*, members(id, display_name, avatar_url), ramen_shops(id, name), post_likes(member_id), post_comments(id)')
     .eq('id', postId)
-    .single()
+    .eq('organization_id', organization.id)
+    .maybeSingle()
 
   if (postError || !postData) {
     const { data: fallback } = await supabase
       .from('posts')
       .select('*, members(id, display_name, avatar_url), ramen_shops(id, name)')
       .eq('id', postId)
-      .single()
+      .eq('organization_id', organization.id)
+      .maybeSingle()
     post = fallback ? { ...fallback, post_likes: [], post_comments: [] } : null
   } else {
     post = postData
   }
 
   if (!post) notFound()
-  if (!myMember) notFound()
+
+  const memberId = myMember?.id ?? ''
 
   const { data: comments } = await supabase
     .from('post_comments')
@@ -54,13 +58,13 @@ export default async function PostDetailPage({
         フィードに戻る
       </Link>
 
-      <PostCard post={post as any} org={org} myMemberId={myMember.id} />
+      <PostCard post={post as any} org={org} myMemberId={memberId} />
 
       <CommentSection
         org={org}
         postId={postId}
         initialComments={(comments ?? []) as any}
-        myMemberId={myMember.id}
+        myMemberId={memberId}
       />
     </div>
   )
