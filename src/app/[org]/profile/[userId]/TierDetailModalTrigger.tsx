@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import type { TierRating, RamenShop, Member } from '@/types/database'
 import { TIER_COLORS } from '@/lib/utils'
@@ -25,7 +26,7 @@ export default function TierDetailModalTrigger({ rating, shop, member, org }: Pr
         style={{ borderLeftWidth: 3, borderLeftColor: rating.tier ? TIER_COLORS[rating.tier as keyof typeof TIER_COLORS] : '#E4E0D8', borderLeftStyle: 'solid' }}
       >
         {shop.photo_url ? (
-          <img src={shop.photo_url} alt={shop.name} className="w-8 h-8 object-cover shrink-0" />
+          <Image src={shop.photo_url} alt={shop.name} width={32} height={32} className="object-cover shrink-0" />
         ) : (
           <div
             className="w-8 h-8 shrink-0 flex items-center justify-center text-white text-xs font-bold"

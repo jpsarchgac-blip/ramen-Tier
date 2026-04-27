@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { TIER_COLORS } from '@/lib/utils'
 import type { TierLevel, TierRating, RamenShop, Member } from '@/types/database'
@@ -133,7 +134,7 @@ export default function ShopDetailInteractive({ org, avgChart, memberRatings, sh
                   style={{ borderLeftWidth: 3, borderLeftColor: r.tier ? TIER_COLORS[r.tier] : '#E4E0D8', borderLeftStyle: 'solid' }}
                 >
                   {r.member.avatar_url ? (
-                    <img src={r.member.avatar_url} alt="" className="w-6 h-6 rounded-full object-cover" />
+                    <Image src={r.member.avatar_url} alt="" width={24} height={24} className="rounded-full object-cover" />
                   ) : (
                     <div className="w-6 h-6 rounded-full bg-[#FEFAE0] flex items-center justify-center">
                       <span className="material-symbols-rounded text-[12px] text-[#B8A000]">person</span>

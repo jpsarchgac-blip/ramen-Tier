@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { RAMEN_TYPES } from '@/lib/utils'
 import { setupUser } from '@/lib/actions/setup'
@@ -104,7 +105,7 @@ export default function SetupPage() {
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
               {avatarUrl ? (
-                <img src={avatarUrl} alt="avatar" className="w-20 h-20 rounded-full object-cover border-2 border-[#F2D400]" />
+                <Image src={avatarUrl} alt="avatar" width={80} height={80} unoptimized className="rounded-full object-cover border-2 border-[#F2D400]" />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-[#FEFAE0] border-2 border-[#F2D400] flex items-center justify-center">
                   <span className="material-symbols-rounded text-[32px] text-[#B8A000]">person</span>

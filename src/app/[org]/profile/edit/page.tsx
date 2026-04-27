@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { RAMEN_TYPES } from '@/lib/utils'
 import type { Member, RamenShop } from '@/types/database'
@@ -118,10 +119,13 @@ export default function ProfileEditPage() {
           {/* Avatar */}
           <div className="flex flex-col items-center gap-3">
             {(avatarUrl && !avatarLoadError) ? (
-              <img
+              <Image
                 src={avatarUrl}
                 alt="avatar"
-                className="w-20 h-20 rounded-full object-cover border-2 border-[#F2D400]"
+                width={80}
+                height={80}
+                unoptimized
+                className="rounded-full object-cover border-2 border-[#F2D400]"
                 onError={() => setAvatarLoadError(true)}
               />
             ) : (

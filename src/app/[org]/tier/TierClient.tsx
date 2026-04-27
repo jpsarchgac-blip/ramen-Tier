@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { TIER_LEVELS, TIER_COLORS, getGoogleMapsUrl } from '@/lib/utils'
 import type { TierLevel, TierRatingWithShop, RamenShop } from '@/types/database'
 import dynamic from 'next/dynamic'
@@ -137,7 +138,7 @@ export default function TierClient({ org, initialRatings, memberId }: TierClient
                     >
                       <span className="material-symbols-rounded text-[14px] text-[#9C9688]">drag_indicator</span>
                       {shop.photo_url ? (
-                        <img src={shop.photo_url} alt={shop.name} className="w-10 h-10 object-cover shrink-0" />
+                        <Image src={shop.photo_url} alt={shop.name} width={40} height={40} className="object-cover shrink-0" />
                       ) : (
                         <div className="w-10 h-10 shrink-0 flex items-center justify-center" style={{ background: TIER_COLORS[tier] }}>
                           <span className="text-white text-xs font-bold">{shop.name[0]}</span>

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { TIER_COLORS, getGoogleMapsUrl } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
 import HelpTooltip from '@/components/HelpTooltip'
@@ -125,7 +126,7 @@ export default function SearchPage() {
                       </div>
                       {/* Photo */}
                       {r.shop.photo_url ? (
-                        <img src={r.shop.photo_url} alt={r.shop.name} className="w-16 h-16 object-cover shrink-0" />
+                        <Image src={r.shop.photo_url} alt={r.shop.name} width={64} height={64} className="object-cover shrink-0" />
                       ) : (
                         <div className="w-16 h-16 bg-[#FEFAE0] shrink-0 flex items-center justify-center text-2xl">🍜</div>
                       )}

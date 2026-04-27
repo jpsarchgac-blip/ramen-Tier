@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { formatDate } from '@/lib/utils'
 
@@ -59,7 +60,7 @@ export default function CommentSection({ org, postId, initialComments, myMemberI
               <div key={c.id} className="flex gap-3 px-4 py-3">
                 <Link href={`/${org}/profile/${m?.id}`} className="shrink-0">
                   {m?.avatar_url ? (
-                    <img src={m.avatar_url} alt="" className="w-7 h-7 rounded-full object-cover" />
+                    <Image src={m.avatar_url} alt="" width={28} height={28} className="rounded-full object-cover" />
                   ) : (
                     <div className="w-7 h-7 rounded-full bg-[#FEFAE0] flex items-center justify-center">
                       <span className="material-symbols-rounded text-[12px] text-[#B8A000]">person</span>

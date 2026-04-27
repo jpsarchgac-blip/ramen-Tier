@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { TIER_COLORS, TIER_LEVELS, RAMEN_TYPES } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
@@ -94,7 +95,7 @@ export default function DashboardClient({ org, shopStats, members, recentPosts, 
               className="relative flex-none w-36 h-44 overflow-hidden border border-[#E4E0D8] block group"
             >
               {shop.photo_url ? (
-                <img src={shop.photo_url} alt={shop.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                <Image src={shop.photo_url} alt={shop.name} fill className="object-cover group-hover:scale-105 transition-transform" sizes="144px" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center" style={{ background: TIER_COLORS[(['S', 'A', 'B', 'C', 'D'] as TierLevel[])[i]] }}>
                   <span className="text-white text-2xl">🍜</span>
@@ -169,10 +170,12 @@ export default function DashboardClient({ org, shopStats, members, recentPosts, 
               title={member.display_name ?? ''}
             >
               {member.avatar_url ? (
-                <img
+                <Image
                   src={member.avatar_url}
                   alt={member.display_name ?? ''}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-transparent group-hover:border-[#F2D400] transition-all"
+                  width={48}
+                  height={48}
+                  className="rounded-full object-cover border-2 border-transparent group-hover:border-[#F2D400] transition-all"
                   style={{ boxShadow: member.id === myMemberId ? '0 0 0 3px #F2D400' : undefined }}
                 />
               ) : (
@@ -199,9 +202,9 @@ export default function DashboardClient({ org, shopStats, members, recentPosts, 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {recentPosts.map(post => (
               <Link key={post.id} href={`/${org}/feed/${post.id}`} className="block group">
-                <div className="aspect-square bg-[#F7F5F0] border border-[#E4E0D8] overflow-hidden mb-1">
+                <div className="relative aspect-square bg-[#F7F5F0] border border-[#E4E0D8] overflow-hidden mb-1">
                   {post.image_urls?.[0] ? (
-                    <img src={post.image_urls[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    <Image src={post.image_urls[0]} alt="" fill className="object-cover group-hover:scale-105 transition-transform" sizes="(max-width: 640px) 50vw, 25vw" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <span className="text-3xl">🍜</span>

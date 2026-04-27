@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import HelpTooltip from '@/components/HelpTooltip'
 import { uploadOrgLogo, deleteOrgLogo } from '@/lib/actions/orgSettings'
 
@@ -64,9 +65,11 @@ export default function LogoClient({ org, initialLogoUrl }: Props) {
           <p className="text-sm font-medium text-[#1C1A16] mb-2">現在のロゴ</p>
           {(logoUrl && !imgError) ? (
             <div className="flex items-center gap-3 bg-[#F7F5F0] border border-[#E4E0D8] px-3 py-3">
-              <img
+              <Image
                 src={logoUrl}
                 alt="logo"
+                width={160}
+                height={40}
                 className="h-10 w-auto max-w-[160px] object-contain"
                 onError={() => setImgError(true)}
               />

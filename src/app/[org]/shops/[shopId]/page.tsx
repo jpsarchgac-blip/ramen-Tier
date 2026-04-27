@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { TIER_LEVELS, TIER_COLORS, getGoogleMapsUrl, formatDate } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
@@ -121,8 +122,8 @@ export default async function ShopDetailPage({
       {/* Shop hero */}
       <div className="bg-[#FFFFFF] border border-[#E4E0D8] overflow-hidden">
         {shop.photo_url ? (
-          <div className="h-48 sm:h-64 overflow-hidden">
-            <img src={shop.photo_url} alt={shop.name} className="w-full h-full object-cover" />
+          <div className="relative h-48 sm:h-64 overflow-hidden">
+            <Image src={shop.photo_url} alt={shop.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 800px" />
           </div>
         ) : (
           <div className="h-32 bg-[#F2D400] flex items-center justify-center">
@@ -204,9 +205,9 @@ export default async function ShopDetailPage({
               const member = post.members as unknown as { display_name: string | null } | null
               return (
                 <Link key={post.id} href={`/${org}/feed/${post.id}`} className="block group">
-                  <div className="aspect-square bg-[#F7F5F0] border border-[#E4E0D8] overflow-hidden mb-1">
+                  <div className="relative aspect-square bg-[#F7F5F0] border border-[#E4E0D8] overflow-hidden mb-1">
                     {post.image_urls?.[0] ? (
-                      <img src={post.image_urls[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      <Image src={post.image_urls[0]} alt="" fill className="object-cover group-hover:scale-105 transition-transform" sizes="(max-width: 768px) 50vw, 33vw" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-2xl">🍜</div>
                     )}

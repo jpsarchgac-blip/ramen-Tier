@@ -118,7 +118,7 @@ export default async function ProfilePage({
       <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-5">
         <div className="flex items-start gap-4">
           {member.avatar_url ? (
-            <img src={member.avatar_url} alt={member.display_name ?? ''} className="w-16 h-16 rounded-full object-cover border-2 border-[#F2D400] shrink-0" />
+            <Image src={member.avatar_url} alt={member.display_name ?? ''} width={64} height={64} className="rounded-full object-cover border-2 border-[#F2D400] shrink-0" />
           ) : (
             <div className="w-16 h-16 rounded-full bg-[#FEFAE0] border-2 border-[#F2D400] flex items-center justify-center shrink-0">
               <span className="material-symbols-rounded text-[28px] text-[#B8A000]">person</span>

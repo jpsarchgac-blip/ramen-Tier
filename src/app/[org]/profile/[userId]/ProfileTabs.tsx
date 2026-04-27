@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import dynamic from 'next/dynamic'
 import { TIER_LEVELS, TIER_COLORS } from '@/lib/utils'
 import type { TierLevel, TierRating, RamenShop, Member } from '@/types/database'
@@ -166,7 +167,7 @@ export default function ProfileTabs({ org, member, isOwn, ratings, wishItems: in
                 return (
                   <div key={wish.id} className="bg-[#FFFFFF] border border-[#E4E0D8] flex gap-3 p-3">
                     {s.photo_url ? (
-                      <img src={s.photo_url} alt={s.name} className="w-16 h-16 object-cover shrink-0" />
+                      <Image src={s.photo_url} alt={s.name} width={64} height={64} className="object-cover shrink-0" />
                     ) : (
                       <div className="w-16 h-16 bg-[#FEFAE0] shrink-0 flex items-center justify-center text-2xl">🍜</div>
                     )}
@@ -222,7 +223,7 @@ export default function ProfileTabs({ org, member, isOwn, ratings, wishItems: in
                 <div key={post.id} className="relative aspect-square bg-[#F7F5F0] border border-[#E4E0D8] overflow-hidden group">
                   <Link href={`/${org}/feed/${post.id}`} className="block w-full h-full">
                     {post.image_urls?.[0] ? (
-                      <img src={post.image_urls[0]} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                      <Image src={post.image_urls[0]} alt="" fill className="object-cover group-hover:scale-105 transition-transform" sizes="33vw" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <span className="material-symbols-rounded text-[32px] text-[#E4E0D8]">ramen_dining</span>
