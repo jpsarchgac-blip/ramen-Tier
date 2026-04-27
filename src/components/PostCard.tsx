@@ -46,27 +46,38 @@ export default function PostCard({ post, org, myMemberId }: PostCardProps) {
     <div className="bg-[#FFFFFF] border border-[#E4E0D8]">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2.5">
-        <Link href={`/${org}/profile/${member?.id}`} className="flex items-center gap-2 group">
-          {member?.avatar_url ? (
-            <img src={member.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover group-hover:ring-2 ring-[#F2D400]" />
+        <div className="flex items-center gap-2 group">
+          {member?.id ? (
+            <Link href={`/${org}/profile/${member.id}`} className="flex items-center gap-2 group">
+              {member.avatar_url ? (
+                <img src={member.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover group-hover:ring-2 ring-[#F2D400]" />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-[#FEFAE0] flex items-center justify-center group-hover:ring-2 ring-[#F2D400]">
+                  <span className="material-symbols-rounded text-[14px] text-[#B8A000]">person</span>
+                </div>
+              )}
+              <div>
+                <div className="text-sm font-medium text-[#1C1A16] group-hover:text-[#F2D400]">{member.display_name}</div>
+                {post.ramen_shops && (
+                  <Link
+                    href={`/${org}/shops/${post.ramen_shops.id}`}
+                    onClick={e => e.stopPropagation()}
+                    className="text-xs text-[#9C9688] hover:text-[#1C1A16]"
+                  >
+                    {post.ramen_shops.name}
+                  </Link>
+                )}
+              </div>
+            </Link>
           ) : (
-            <div className="w-8 h-8 rounded-full bg-[#FEFAE0] flex items-center justify-center group-hover:ring-2 ring-[#F2D400]">
-              <span className="material-symbols-rounded text-[14px] text-[#B8A000]">person</span>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-[#FEFAE0] flex items-center justify-center">
+                <span className="material-symbols-rounded text-[14px] text-[#B8A000]">person</span>
+              </div>
+              <div className="text-sm text-[#9C9688]">—</div>
             </div>
           )}
-          <div>
-            <div className="text-sm font-medium text-[#1C1A16] group-hover:text-[#F2D400]">{member?.display_name}</div>
-            {post.ramen_shops && (
-              <Link
-                href={`/${org}/shops/${post.ramen_shops.id}`}
-                onClick={e => e.stopPropagation()}
-                className="text-xs text-[#9C9688] hover:text-[#1C1A16]"
-              >
-                {post.ramen_shops.name}
-              </Link>
-            )}
-          </div>
-        </Link>
+        </div>
         <span className="text-xs text-[#9C9688]">{formatDate(post.created_at)}</span>
       </div>
 

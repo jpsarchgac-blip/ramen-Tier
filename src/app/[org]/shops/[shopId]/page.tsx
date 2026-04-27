@@ -29,6 +29,7 @@ export default async function ShopDetailPage({
     .eq('user_id', user!.id)
     .eq('organization_id', organization.id)
     .single()
+  if (!myMember) notFound()
 
   const { data: shop } = await supabase
     .from('ramen_shops')
@@ -77,7 +78,7 @@ export default async function ShopDetailPage({
     .from('wish_list')
     .select('id')
     .eq('shop_id', shopId)
-    .eq('member_id', myMember!.id)
+    .eq('member_id', myMember.id)
     .single()
 
   const { data: posts } = await supabase
@@ -180,7 +181,7 @@ export default async function ShopDetailPage({
         <ShopDetailClient
           org={org}
           shopId={shopId}
-          memberId={myMember!.id}
+          memberId={myMember.id}
           initialWished={!!myWish}
           initialWishCount={wishCount ?? 0}
         />

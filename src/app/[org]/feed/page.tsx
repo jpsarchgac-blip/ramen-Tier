@@ -44,7 +44,7 @@ export default async function FeedPage({ params }: { params: Promise<{ org: stri
     <FeedClient
       org={org}
       initialPosts={posts as any}
-      myMemberId={myMember!.id}
+      myMemberId={myMember?.id ?? ''}
       bgmUrl={organization.bgm_enabled ? organization.bgm_url : null}
       bgmVolume={organization.bgm_volume}
     />

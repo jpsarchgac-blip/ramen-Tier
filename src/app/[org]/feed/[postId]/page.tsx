@@ -39,6 +39,7 @@ export default async function PostDetailPage({
   }
 
   if (!post) notFound()
+  if (!myMember) notFound()
 
   const { data: comments } = await supabase
     .from('post_comments')
@@ -53,13 +54,13 @@ export default async function PostDetailPage({
         フィードに戻る
       </Link>
 
-      <PostCard post={post as any} org={org} myMemberId={myMember!.id} />
+      <PostCard post={post as any} org={org} myMemberId={myMember.id} />
 
       <CommentSection
         org={org}
         postId={postId}
         initialComments={(comments ?? []) as any}
-        myMemberId={myMember!.id}
+        myMemberId={myMember.id}
       />
     </div>
   )

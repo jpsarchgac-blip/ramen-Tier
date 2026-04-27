@@ -21,79 +21,73 @@ export default function FeedClient({ org, initialPosts, myMemberId, bgmUrl, bgmV
   const [posts, setPosts] = useState(initialPosts)
   const [showCreate, setShowCreate] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [debugInfo, setDebugInfo] = useState('')
 
   const loadPosts = async () => {
     setLoading(true)
     const supabase = createClient()
 
-    // Step 1: confirm auth
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      setDebugInfo('auth: ログインされていません')
-      setLoading(false)
-      return
-    }
+    if (!user) { setLoading(false); return }
 
-    // Step 2: get org id
-    const { data: orgData, error: orgErr } = await supabase
+    const { data: orgData } = await supabase
       .from('organizations').select('id').eq('slug', org).single()
-    if (!orgData) {
-      setDebugInfo(`org取得失敗: ${orgErr?.message ?? 'null'}`)
-      setLoading(false)
-      return
-    }
+    if (!orgData) { setLoading(false); return }
 
-    // Step 3: try full query with org filter
-    const { data: d1, error: e1 } = await supabase
+    // Try with org filter + all joins
+    const { data: d1 } = await supabase
       .from('posts')
       .select('*, members(id, display_name, avatar_url), ramen_shops(id, name), post_likes(member_id), post_comments(id)')
       .eq('organization_id', orgData.id)
       .order('created_at', { ascending: false })
       .limit(20)
+    if (d1 && d1.length > 0) { setPosts(d1); setLoading(false); return }
 
-    if (!e1 && d1 && d1.length > 0) {
-      setPosts(d1)
-      setDebugInfo('')
-      setLoading(false)
-      return
-    }
-
-    // Step 4: fallback — query without org filter (rely on RLS only)
-    const { data: d2, error: e2 } = await supabase
+    // Try without post_likes/post_comments (those joins may cause issues)
+    const { data: d2 } = await supabase
       .from('posts')
-      .select('*, members(id, display_name, avatar_url), ramen_shops(id, name), post_likes(member_id), post_comments(id)')
+      .select('*, members(id, display_name, avatar_url), ramen_shops(id, name)')
+      .eq('organization_id', orgData.id)
       .order('created_at', { ascending: false })
       .limit(20)
-
-    if (!e2 && d2 && d2.length > 0) {
-      setPosts(d2)
-      setDebugInfo('')
-      setLoading(false)
-      return
+    if (d2 && d2.length > 0) {
+      setPosts(d2.map(p => ({ ...p, post_likes: [], post_comments: [] })))
+      setLoading(false); return
     }
 
-    // Step 5: fallback — no joins
-    const { data: d3, error: e3 } = await supabase
+    // Try without org filter (rely on RLS only)
+    const { data: d3 } = await supabase
+      .from('posts')
+      .select('*, members(id, display_name, avatar_url), ramen_shops(id, name)')
+      .order('created_at', { ascending: false })
+      .limit(20)
+    if (d3 && d3.length > 0) {
+      setPosts(d3.map(p => ({ ...p, post_likes: [], post_comments: [] })))
+      setLoading(false); return
+    }
+
+    // Last resort: no joins
+    const { data: d4 } = await supabase
       .from('posts')
       .select('id, member_id, organization_id, caption, image_urls, ramen_type, created_at')
       .order('created_at', { ascending: false })
       .limit(20)
-
-    if (!e3 && d3 && d3.length > 0) {
-      setPosts(d3.map(p => ({ ...p, members: null, ramen_shops: null, post_likes: [], post_comments: [] })))
-      setDebugInfo('')
-      setLoading(false)
-      return
+    if (d4) {
+      // Fetch member info separately for posts we found
+      const memberIds = [...new Set(d4.map(p => p.member_id))]
+      const { data: members } = await supabase
+        .from('members')
+        .select('id, display_name, avatar_url')
+        .in('id', memberIds)
+      const memberMap = Object.fromEntries((members ?? []).map(m => [m.id, m]))
+      setPosts(d4.map(p => ({
+        ...p,
+        members: memberMap[p.member_id] ?? null,
+        ramen_shops: null,
+        post_likes: [],
+        post_comments: [],
+      })))
     }
 
-    // All queries returned empty — show debug info
-    setDebugInfo(
-      `orgId:${orgData.id.slice(0, 8)} | ` +
-      `全件:${d3?.length ?? 'err'}(${e3?.message ?? ''}) | ` +
-      `org絞り:${d1?.length ?? 'err'}(${e1?.message ?? ''})`
-    )
-    setPosts([])
     setLoading(false)
   }
 
@@ -103,7 +97,6 @@ export default function FeedClient({ org, initialPosts, myMemberId, bgmUrl, bgmV
 
   return (
     <div className="max-w-lg mx-auto space-y-4">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h1 className="font-bold text-[#1C1A16] text-xl">ラーメンインスタ</h1>
@@ -118,14 +111,6 @@ export default function FeedClient({ org, initialPosts, myMemberId, bgmUrl, bgmV
         </button>
       </div>
 
-      {/* Debug info (only shows when queries fail) */}
-      {debugInfo && (
-        <div className="bg-[#FFF3CD] border border-[#F2D400] px-3 py-2 text-xs text-[#1C1A16] font-mono break-all">
-          {debugInfo}
-        </div>
-      )}
-
-      {/* Posts */}
       {loading ? (
         <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-8 text-center text-[#9C9688]">
           <p className="text-sm">読み込み中...</p>
