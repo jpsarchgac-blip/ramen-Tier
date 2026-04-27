@@ -20,33 +20,80 @@ interface FeedClientProps {
 export default function FeedClient({ org, initialPosts, myMemberId, bgmUrl, bgmVolume }: FeedClientProps) {
   const [posts, setPosts] = useState(initialPosts)
   const [showCreate, setShowCreate] = useState(false)
-  const [loading, setLoading] = useState(initialPosts.length === 0)
+  const [loading, setLoading] = useState(true)
+  const [debugInfo, setDebugInfo] = useState('')
 
   const loadPosts = async () => {
+    setLoading(true)
     const supabase = createClient()
-    const { data: orgData } = await supabase
-      .from('organizations').select('id').eq('slug', org).single()
-    if (!orgData) return
 
-    const { data, error } = await supabase
+    // Step 1: confirm auth
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      setDebugInfo('auth: ログインされていません')
+      setLoading(false)
+      return
+    }
+
+    // Step 2: get org id
+    const { data: orgData, error: orgErr } = await supabase
+      .from('organizations').select('id').eq('slug', org).single()
+    if (!orgData) {
+      setDebugInfo(`org取得失敗: ${orgErr?.message ?? 'null'}`)
+      setLoading(false)
+      return
+    }
+
+    // Step 3: try full query with org filter
+    const { data: d1, error: e1 } = await supabase
       .from('posts')
       .select('*, members(id, display_name, avatar_url), ramen_shops(id, name), post_likes(member_id), post_comments(id)')
       .eq('organization_id', orgData.id)
       .order('created_at', { ascending: false })
       .limit(20)
 
-    if (error) {
-      // fallback without like/comment counts
-      const { data: fallback } = await supabase
-        .from('posts')
-        .select('*, members(id, display_name, avatar_url), ramen_shops(id, name)')
-        .eq('organization_id', orgData.id)
-        .order('created_at', { ascending: false })
-        .limit(20)
-      if (fallback) setPosts(fallback.map(p => ({ ...p, post_likes: [], post_comments: [] })))
-    } else if (data) {
-      setPosts(data)
+    if (!e1 && d1 && d1.length > 0) {
+      setPosts(d1)
+      setDebugInfo('')
+      setLoading(false)
+      return
     }
+
+    // Step 4: fallback — query without org filter (rely on RLS only)
+    const { data: d2, error: e2 } = await supabase
+      .from('posts')
+      .select('*, members(id, display_name, avatar_url), ramen_shops(id, name), post_likes(member_id), post_comments(id)')
+      .order('created_at', { ascending: false })
+      .limit(20)
+
+    if (!e2 && d2 && d2.length > 0) {
+      setPosts(d2)
+      setDebugInfo('')
+      setLoading(false)
+      return
+    }
+
+    // Step 5: fallback — no joins
+    const { data: d3, error: e3 } = await supabase
+      .from('posts')
+      .select('id, member_id, organization_id, caption, image_urls, ramen_type, created_at')
+      .order('created_at', { ascending: false })
+      .limit(20)
+
+    if (!e3 && d3 && d3.length > 0) {
+      setPosts(d3.map(p => ({ ...p, members: null, ramen_shops: null, post_likes: [], post_comments: [] })))
+      setDebugInfo('')
+      setLoading(false)
+      return
+    }
+
+    // All queries returned empty — show debug info
+    setDebugInfo(
+      `orgId:${orgData.id.slice(0, 8)} | ` +
+      `全件:${d3?.length ?? 'err'}(${e3?.message ?? ''}) | ` +
+      `org絞り:${d1?.length ?? 'err'}(${e1?.message ?? ''})`
+    )
+    setPosts([])
     setLoading(false)
   }
 
@@ -71,10 +118,16 @@ export default function FeedClient({ org, initialPosts, myMemberId, bgmUrl, bgmV
         </button>
       </div>
 
+      {/* Debug info (only shows when queries fail) */}
+      {debugInfo && (
+        <div className="bg-[#FFF3CD] border border-[#F2D400] px-3 py-2 text-xs text-[#1C1A16] font-mono break-all">
+          {debugInfo}
+        </div>
+      )}
+
       {/* Posts */}
       {loading ? (
         <div className="bg-[#FFFFFF] border border-[#E4E0D8] p-8 text-center text-[#9C9688]">
-          <span className="material-symbols-rounded text-[32px] text-[#E4E0D8] mb-2">sync</span>
           <p className="text-sm">読み込み中...</p>
         </div>
       ) : posts.length === 0 ? (
