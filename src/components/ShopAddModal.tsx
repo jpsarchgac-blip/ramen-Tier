@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import Image from 'next/image'
 import { TIER_LEVELS, TIER_COLORS, HIGHLIGHT_OPTIONS, RAMEN_TYPES } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
 import HelpTooltip from '@/components/HelpTooltip'
@@ -301,11 +302,15 @@ export default function ShopAddModal({ org, onClose, onSaved, initialShop }: Sho
                 <div className="space-y-3">
                   <div className="border border-[#F2D400] overflow-hidden">
                     {place.photoUrl && (
-                      <img
-                        src={place.photoUrl}
-                        alt={place.name}
-                        className="w-full h-36 object-cover"
-                      />
+                      <div className="relative h-36 w-full">
+                        <Image
+                          src={place.photoUrl}
+                          alt={place.name}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 512px) 100vw, 512px"
+                        />
+                      </div>
                     )}
                     <div className="p-3">
                       <div className="flex items-start justify-between gap-2">
@@ -383,7 +388,7 @@ export default function ShopAddModal({ org, onClose, onSaved, initialShop }: Sho
             <div className="space-y-3">
               <div className="flex items-center gap-3 bg-[#F7F5F0] border border-[#E4E0D8] p-2.5">
                 {place?.photoUrl ? (
-                  <img src={place.photoUrl} alt={place.name} className="w-12 h-12 object-cover shrink-0" />
+                  <Image src={place.photoUrl} alt={place.name} width={48} height={48} className="object-cover shrink-0" />
                 ) : (
                   <div className="w-12 h-12 bg-[#FEFAE0] shrink-0 flex items-center justify-center text-xl">🍜</div>
                 )}

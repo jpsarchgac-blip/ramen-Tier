@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { formatDate, TIER_COLORS } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'
 
@@ -50,7 +51,7 @@ export default function PostCard({ post, org, myMemberId }: PostCardProps) {
           {member?.id ? (
             <Link href={`/${org}/profile/${member.id}`} className="flex items-center gap-2 group">
               {member.avatar_url ? (
-                <img src={member.avatar_url} alt="" className="w-8 h-8 rounded-full object-cover group-hover:ring-2 ring-[#F2D400]" />
+                <Image src={member.avatar_url} alt="" width={32} height={32} className="rounded-full object-cover group-hover:ring-2 ring-[#F2D400]" />
               ) : (
                 <div className="w-8 h-8 rounded-full bg-[#FEFAE0] flex items-center justify-center group-hover:ring-2 ring-[#F2D400]">
                   <span className="material-symbols-rounded text-[14px] text-[#B8A000]">person</span>
@@ -84,10 +85,12 @@ export default function PostCard({ post, org, myMemberId }: PostCardProps) {
       {/* Image */}
       {images.length > 0 && (
         <div className="relative aspect-[4/3] overflow-hidden bg-[#F7F5F0]">
-          <img
+          <Image
             src={images[imgIndex]}
             alt=""
-            className="w-full h-full object-cover transition-transform duration-300"
+            fill
+            className="object-cover transition-transform duration-300"
+            sizes="(max-width: 512px) 100vw, 512px"
           />
           {images.length > 1 && (
             <>

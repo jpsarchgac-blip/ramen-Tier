@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { TIER_LEVELS, formatDate } from '@/lib/utils'
 import type { TierLevel } from '@/types/database'

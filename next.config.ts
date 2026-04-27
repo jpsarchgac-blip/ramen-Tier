@@ -2,9 +2,16 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   typescript: {
-    // Server Actions imported in Client Components are typed as () => void by the
-    // Next.js TS plugin, but they accept arguments at runtime. Ignore these false positives.
     ignoreBuildErrors: true,
+  },
+  images: {
+    remotePatterns: [
+      { protocol: 'https', hostname: '**.supabase.co' },
+      { protocol: 'https', hostname: 'maps.googleapis.com' },
+      { protocol: 'https', hostname: '**.googleusercontent.com' },
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+      { protocol: 'https', hostname: 'places.googleapis.com' },
+    ],
   },
 };
 

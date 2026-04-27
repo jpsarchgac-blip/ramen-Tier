@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import HelpTooltip from '@/components/HelpTooltip'
 import type { Member } from '@/types/database'
@@ -61,7 +62,7 @@ export default function Header({ org, member, orgLogoUrl }: HeaderProps) {
         {/* Logo */}
         {orgLogoUrl && (
           <Link href={`/${org}/dashboard`} className="mr-2 shrink-0">
-            <img src={orgLogoUrl} alt="logo" className="h-8 w-auto max-w-[120px] object-contain" />
+            <Image src={orgLogoUrl} alt="logo" width={120} height={32} className="h-8 w-auto max-w-[120px] object-contain" />
           </Link>
         )}
 
@@ -106,10 +107,12 @@ export default function Header({ org, member, orgLogoUrl }: HeaderProps) {
               className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
               {member?.avatar_url ? (
-                <img
+                <Image
                   src={member.avatar_url}
                   alt={member.display_name ?? ''}
-                  className="w-8 h-8 rounded-full object-cover border border-[#E4E0D8]"
+                  width={32}
+                  height={32}
+                  className="rounded-full object-cover border border-[#E4E0D8]"
                   style={{ boxShadow: menuOpen ? '0 0 0 3px #F2D400' : undefined }}
                 />
               ) : (
