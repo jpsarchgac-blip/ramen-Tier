@@ -245,77 +245,108 @@ export default function ShopAddModal({ org, onClose, onSaved, initialShop }: Sho
           {/* Step 1: Shop search */}
           {step === 1 && (
             <div className="space-y-4">
-              {mapsApiKey ? (
-                /* Google Places Autocomplete mode */
-                <div>
-                  <label className="block text-sm font-medium text-[#1C1A16] mb-1">店舗名で検索</label>
-                  <div className="flex gap-2">
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      placeholder="例: ○○ラーメン 渋谷店"
-                      className="flex-1 border border-[#E4E0D8] px-3 py-2 text-sm outline-none focus:border-[#F2D400]"
-                      onChange={e => {
-                        if (!autocompleteRef.current) {
-                          setSearchQuery(e.target.value)
-                          setPlace(null)
-                        }
-                      }}
-                    />
-                    <button
-                      onClick={place ? handlePlaceSelected : handleManualPlace}
-                      disabled={!place && !inputRef.current?.value.trim()}
-                      className="bg-[#F2D400] text-[#1C1A16] font-ui font-semibold px-4 py-2 text-sm hover:bg-[#B8A000] disabled:opacity-50"
-                    >
-                      次へ
-                    </button>
-                  </div>
-                  {place && (
-                    <div className="mt-2 flex items-center gap-2 bg-[#FEFAE0] border border-[#F2D400] p-2 text-sm">
-                      <span className="material-symbols-rounded text-[16px] text-[#F2D400]">check_circle</span>
-                      <span className="font-medium text-[#1C1A16]">{place.name}</span>
-                      {place.address && <span className="text-[#9C9688] text-xs truncate">{place.address}</span>}
+              {!place ? (
+                /* ── Search state ── */
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-[#1C1A16]">
+                    Googleマップで店舗を検索
+                  </label>
+                  {mapsApiKey ? (
+                    <div className="relative">
+                      <span className="material-symbols-rounded absolute left-3 top-2.5 text-[18px] text-[#9C9688] pointer-events-none">search</span>
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        placeholder="例: 一蘭 渋谷店"
+                        className="w-full border border-[#E4E0D8] pl-9 pr-3 py-2 text-sm outline-none focus:border-[#F2D400]"
+                        onChange={e => {
+                          if (!autocompleteRef.current) setSearchQuery(e.target.value)
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 text-xs text-amber-800">
+                        <span className="material-symbols-rounded text-[14px] shrink-0 mt-0.5">warning</span>
+                        <span>NEXT_PUBLIC_GOOGLE_MAPS_API_KEY が未設定のため手動入力モードです</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={searchQuery}
+                          onChange={e => setSearchQuery(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && handleManualPlace()}
+                          placeholder="例: ○○ラーメン 渋谷店"
+                          className="flex-1 border border-[#E4E0D8] px-3 py-2 text-sm outline-none focus:border-[#F2D400]"
+                        />
+                        <button
+                          onClick={handleManualPlace}
+                          disabled={!searchQuery.trim()}
+                          className="bg-[#F2D400] text-[#1C1A16] font-ui font-semibold px-4 py-2 text-sm hover:bg-[#B8A000] disabled:opacity-50"
+                        >
+                          次へ
+                        </button>
+                      </div>
                     </div>
                   )}
-                  <p className="text-xs text-[#9C9688] mt-1">Google Mapsのデータから自動取得します</p>
+                  {mapsApiKey && (
+                    <p className="text-xs text-[#9C9688] flex items-center gap-1">
+                      <span className="material-symbols-rounded text-[12px]">info</span>
+                      店名を入力すると候補が表示されます。選択で住所・写真を自動取得します
+                    </p>
+                  )}
                 </div>
               ) : (
-                /* Manual input mode */
-                <div>
-                  <label className="block text-sm font-medium text-[#1C1A16] mb-1">店舗名</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={e => setSearchQuery(e.target.value)}
-                      onKeyDown={e => e.key === 'Enter' && handleManualPlace()}
-                      placeholder="例: ○○ラーメン 渋谷店"
-                      className="flex-1 border border-[#E4E0D8] px-3 py-2 text-sm outline-none focus:border-[#F2D400]"
-                    />
-                    <button
-                      onClick={handleManualPlace}
-                      disabled={!searchQuery.trim()}
-                      className="bg-[#F2D400] text-[#1C1A16] font-ui font-semibold px-4 py-2 text-sm hover:bg-[#B8A000] disabled:opacity-50"
-                    >
-                      次へ
-                    </button>
+                /* ── Place selected: rich preview card ── */
+                <div className="space-y-3">
+                  <div className="border border-[#F2D400] overflow-hidden">
+                    {place.photoUrl && (
+                      <img
+                        src={place.photoUrl}
+                        alt={place.name}
+                        className="w-full h-36 object-cover"
+                      />
+                    )}
+                    <div className="p-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-[#1C1A16] text-sm leading-snug">{place.name}</p>
+                          {place.address && (
+                            <p className="text-xs text-[#9C9688] mt-0.5 leading-relaxed">{place.address}</p>
+                          )}
+                          {place.placeId ? (
+                            <div className="flex items-center gap-1 mt-1.5">
+                              <span className="material-symbols-rounded text-[12px] text-green-600">check_circle</span>
+                              <span className="text-[10px] text-green-600 font-medium">Googleマップで確認済み</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1 mt-1.5">
+                              <span className="material-symbols-rounded text-[12px] text-[#9C9688]">edit_note</span>
+                              <span className="text-[10px] text-[#9C9688]">手動入力</span>
+                            </div>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => {
+                            setPlace(null)
+                            setSearchQuery('')
+                            if (inputRef.current) inputRef.current.value = ''
+                          }}
+                          className="shrink-0 text-xs text-[#9C9688] hover:text-[#E8593C] border border-[#E4E0D8] px-2.5 py-1 hover:border-[#E8593C] transition-colors"
+                        >
+                          再選択
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
 
+              {/* Ramen type — always visible */}
               <div>
-                <label className="block text-sm font-medium text-[#1C1A16] mb-1">住所（任意）</label>
-                <input
-                  type="text"
-                  placeholder="例: 渋谷区〇〇1-2-3"
-                  className="w-full border border-[#E4E0D8] px-3 py-2 text-sm outline-none focus:border-[#F2D400]"
-                  onChange={e => {
-                    if (place) setPlace(p => p ? { ...p, address: e.target.value } : null)
-                  }}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-[#1C1A16] mb-2">ラーメンの種類（任意）</label>
+                <label className="block text-sm font-medium text-[#1C1A16] mb-2">
+                  ラーメンの種類 <span className="text-[#9C9688] font-normal text-xs">任意</span>
+                </label>
                 <div className="flex flex-wrap gap-2">
                   {RAMEN_TYPES.map(t => (
                     <button
@@ -325,7 +356,7 @@ export default function ShopAddModal({ org, onClose, onSaved, initialShop }: Sho
                       className={`px-2.5 py-1 text-xs border transition-colors ${
                         ramenTypes.includes(t)
                           ? 'bg-[#F2D400] border-[#B8A000] text-[#1C1A16] font-medium'
-                          : 'bg-[#FFFFFF] border-[#E4E0D8] text-[#9C9688]'
+                          : 'bg-[#FFFFFF] border-[#E4E0D8] text-[#9C9688] hover:border-[#F2D400]'
                       }`}
                     >
                       {t}
@@ -333,15 +364,35 @@ export default function ShopAddModal({ org, onClose, onSaved, initialShop }: Sho
                   ))}
                 </div>
               </div>
+
+              {/* Next button — only shown once a place is selected */}
+              {place && (
+                <button
+                  onClick={handlePlaceSelected}
+                  className="w-full bg-[#F2D400] text-[#1C1A16] font-ui font-semibold py-3 text-sm hover:bg-[#B8A000] flex items-center justify-center gap-1"
+                >
+                  次へ
+                  <span className="material-symbols-rounded text-[18px]">arrow_forward</span>
+                </button>
+              )}
             </div>
           )}
 
           {/* Step 2: Tier selection */}
           {step === 2 && (
             <div className="space-y-3">
-              <p className="text-sm text-[#9C9688]">
-                <strong className="text-[#1C1A16]">{place?.name}</strong> をどのTierに入れますか？
-              </p>
+              <div className="flex items-center gap-3 bg-[#F7F5F0] border border-[#E4E0D8] p-2.5">
+                {place?.photoUrl ? (
+                  <img src={place.photoUrl} alt={place.name} className="w-12 h-12 object-cover shrink-0" />
+                ) : (
+                  <div className="w-12 h-12 bg-[#FEFAE0] shrink-0 flex items-center justify-center text-xl">🍜</div>
+                )}
+                <div className="min-w-0">
+                  <p className="font-bold text-[#1C1A16] text-sm truncate">{place?.name}</p>
+                  {place?.address && <p className="text-xs text-[#9C9688] truncate">{place.address}</p>}
+                </div>
+              </div>
+              <p className="text-sm text-[#9C9688]">このお店をどのTierに入れますか？</p>
               <div className="space-y-2">
                 {TIER_LEVELS.map(t => (
                   <button
