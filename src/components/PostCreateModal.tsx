@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { RAMEN_TYPES } from '@/lib/utils'
 import type { RamenShop } from '@/types/database'
-import { getShops } from '@/lib/actions/shops'
+import { getMyShops } from '@/lib/actions/shops'
 import { uploadPostImages } from '@/lib/actions/upload'
 import { createPost } from '@/lib/actions/posts'
 
@@ -24,7 +24,7 @@ export default function PostCreateModal({ org, onClose, onPosted }: Props) {
   const [posting, setPosting] = useState(false)
 
   useEffect(() => {
-    getShops(org).then(setShops).catch(() => {})
+    getMyShops(org).then(setShops).catch(() => {})
   }, [org])
 
   const handleImages = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -33,7 +33,7 @@ export default function TierClient({ org, initialRatings, memberId }: TierClient
   const [dragOverTier, setDragOverTier] = useState<TierLevel | null>(null)
 
   const grouped = TIER_LEVELS.reduce((acc, tier) => {
-    acc[tier] = ratings.filter(r => r.tier === tier)
+    acc[tier] = ratings.filter(r => r.tier === tier && r.ramen_shops != null)
     return acc
   }, {} as Record<TierLevel, typeof ratings>)
 
@@ -54,8 +54,13 @@ export default function TierClient({ org, initialRatings, memberId }: TierClient
 
   const handleDelete = async (ratingId: string, shopId: string) => {
     if (!confirm('このTier評価を削除しますか？')) return
+    const backup = ratings
     setRatings(prev => prev.filter(r => r.id !== ratingId))
-    await deleteTier(org, shopId)
+    const result = await deleteTier(org, shopId)
+    if (result.error) {
+      setRatings(backup)
+      alert(`削除に失敗しました: ${result.error}`)
+    }
   }
 
   const handleRefresh = async () => {

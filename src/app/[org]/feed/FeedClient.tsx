@@ -4,9 +4,9 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import PostCard from '@/components/PostCard'
 import HelpTooltip from '@/components/HelpTooltip'
+import PostCreateModal from '@/components/PostCreateModal'
 import { getFeed } from '@/lib/actions/posts'
 
-const PostCreateModal = dynamic(() => import('@/components/PostCreateModal'), { ssr: false })
 const BgmPlayer = dynamic(() => import('@/components/BgmPlayer'), { ssr: false })
 
 interface FeedClientProps {
