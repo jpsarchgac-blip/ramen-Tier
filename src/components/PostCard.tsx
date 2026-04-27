@@ -3,7 +3,6 @@
 import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { formatDate, TIER_COLORS } from '@/lib/utils'
-import { toggleLike } from '@/lib/actions/posts'
 import type { TierLevel } from '@/types/database'
 
 interface PostCardProps {
@@ -31,7 +30,7 @@ export default function PostCard({ post, org, myMemberId }: PostCardProps) {
   const images = post.image_urls ?? []
   const member = post.members
 
-  const toggleLike = async () => {
+  const handleToggleLike = async () => {
     const next = !liked
     setLiked(next)
     setLikeCount(c => c + (next ? 1 : -1))
@@ -39,7 +38,8 @@ export default function PostCard({ post, org, myMemberId }: PostCardProps) {
       setBouncing(true)
       setTimeout(() => setBouncing(false), 400)
     }
-    await toggleLike(org, post.id, next)
+    const method = next ? 'POST' : 'DELETE'
+    await fetch(`/api/orgs/${org}/posts/${post.id}/like`, { method })
   }
 
   return (
@@ -105,7 +105,7 @@ export default function PostCard({ post, org, myMemberId }: PostCardProps) {
       {/* Actions */}
       <div className="px-3 py-2 flex items-center gap-3">
         <button
-          onClick={toggleLike}
+          onClick={handleToggleLike}
           className={`flex items-center gap-1 text-sm transition-colors ${liked ? 'text-[#E8593C]' : 'text-[#9C9688] hover:text-[#E8593C]'}`}
         >
           <span

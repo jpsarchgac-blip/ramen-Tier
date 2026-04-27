@@ -4,7 +4,6 @@ import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import PostCard from '@/components/PostCard'
 import HelpTooltip from '@/components/HelpTooltip'
-import { getFeed } from '@/lib/actions/posts'
 
 const PostCreateModal = dynamic(() => import('@/components/PostCreateModal'), { ssr: false })
 const BgmPlayer = dynamic(() => import('@/components/BgmPlayer'), { ssr: false })
@@ -22,8 +21,8 @@ export default function FeedClient({ org, initialPosts, myMemberId, bgmUrl, bgmV
   const [showCreate, setShowCreate] = useState(false)
 
   const handleRefresh = async () => {
-    const data = await getFeed(org)
-    setPosts(data)
+    const res = await fetch(`/api/orgs/${org}/feed`)
+    if (res.ok) setPosts(await res.json())
   }
 
   return (
